@@ -7,21 +7,14 @@
     <title>EcoQadam - Ekologik Ijtimoiy Platforma</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script>
-        // Vercel/Browser muhitida process.env xatosini oldini olish
-        window.process = { env: { API_KEY: '' } };
-    </script>
     <style>
         body {
-            font-family: 'Plus+Jakarta+Sans', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             scroll-behavior: smooth;
             overflow-x: hidden;
             margin: 0;
             padding: 0;
             background-color: #f8fafc;
-        }
-        .eco-gradient {
-            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
         }
         
         @keyframes fadeIn {
@@ -49,7 +42,7 @@
         .animate-spin-slow {
             animation: spin-slow 12s linear infinite;
         }
-        /* Oq ekran paytida foydalanuvchiga yuklanishni ko'rsatish */
+        
         #root:empty::after {
             content: "";
             position: absolute;
@@ -67,21 +60,20 @@
 <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@19.0.0",
-    "react-dom": "https://esm.sh/react-dom@19.0.0",
-    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
-    "react/": "https://esm.sh/react@19.0.0/",
-    "@google/genai": "https://esm.sh/@google/genai@1.38.0",
-    "lucide-react": "https://esm.sh/lucide-react@0.460.0",
-    "recharts": "https://esm.sh/recharts@2.13.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "recharts": "https://esm.sh/recharts@^3.7.0",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.38.0"
   }
 }
 </script>
 </head>
 <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
-    <!-- ASOSIY KIRISH QISMI - BUSIZ OQ EKRAN CHIQADI -->
-    <script type="module" src="./index.tsx"></script>
+    <script type="module" src="/index.tsx"></script>
 </body>
 </html>
