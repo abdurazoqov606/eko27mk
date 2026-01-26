@@ -1,7 +1,12 @@
 
 import React, { useState, useRef } from 'react';
 import { EcoArticle } from '../types';
-import { Newspaper, Trophy, Calendar, Rocket, ArrowRight, Award, Gift, Clock, CheckCircle, Coins, Camera, Upload, X, ShieldCheck, Sparkles, TrendingUp, Medal, Share2, Heart, Send, Image as ImageIcon, Banknote, Eye, Maximize2 } from 'lucide-react';
+import { 
+  Newspaper, Trophy, Calendar, Rocket, ArrowRight, Award, Gift, 
+  Clock, CheckCircle, Coins, Camera, Upload, X, ShieldCheck, 
+  Sparkles, TrendingUp, Medal, Share2, Heart, Send, 
+  Image as ImageIcon, Banknote, Eye, Maximize2 
+} from 'lucide-react';
 
 const LEADERBOARD = [
   { name: 'Abbos A.', points: 1250, rank: 1, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Abbos' },
@@ -10,14 +15,14 @@ const LEADERBOARD = [
 
 const FORUM_GALLERY = [
   { 
-    url: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=2000", 
+    url: "https://images.unsplash.com/photo-1540575861501-7ad05823c9f5?q=80&w=2000", 
     title: "Yashil Konferensiya", 
     desc: "Tayloq tumanida o'tkazilgan yirik eko-forumdan lavha.",
     tag: "MAHALLIY"
   },
   { 
-    url: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2000", 
-    title: "Hamjihatlik Kuchi", 
+    url: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2000", 
+    title: "Yosh Ko'ngillilar", 
     desc: "27-maktab o'quvchilarining jamoaviy eko-tashabbusi.",
     tag: "FAOL YOSHLAR"
   }
@@ -92,7 +97,7 @@ const NewsForum: React.FC<NewsForumProps> = ({ articles }) => {
       setIsSubmitting(false);
       setShowContestModal(false);
       setPreviewImage(null);
-      alert("Arizangiz qabul qilindi! Hakamlar ko'rib chiqishadi.");
+      alert("Arizangiz qabul qilindi! Abdurazoqov Abbos va hakamlar uni tez orada ko'rib chiqishadi.");
     }, 2000);
   };
 
@@ -114,7 +119,7 @@ const NewsForum: React.FC<NewsForumProps> = ({ articles }) => {
             <Sparkles size={14} className="animate-pulse" /> EcoQadam Harakati
           </div>
           <h2 className="text-4xl md:text-7xl font-black text-slate-900 tracking-tighter mb-4 leading-none">Forum <span className="text-emerald-600">&</span> Tanlovlar</h2>
-          <p className="text-slate-500 font-medium max-w-2xl text-lg italic">Abdurazoqov Abbos bilan yashil inqilob sari muloqot va raqobat.</p>
+          <p className="text-slate-500 font-medium max-w-2xl text-lg italic">Abdurazoqov Abbos boshchiligidagi yashil inqilob maydoni.</p>
         </div>
         <div className="flex gap-4">
           <button 
@@ -190,7 +195,6 @@ const NewsForum: React.FC<NewsForumProps> = ({ articles }) => {
             {/* Contest Main Banner */}
             <div className="bg-slate-950 rounded-[72px] p-10 md:p-20 text-white shadow-3xl relative overflow-hidden border border-white/5 group">
               <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-600/10 rounded-full -mr-64 -mt-64 blur-[140px] group-hover:bg-emerald-600/20 transition-all duration-1000" />
-              <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px]" />
               
               <div className="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
                 <div>
@@ -201,7 +205,7 @@ const NewsForum: React.FC<NewsForumProps> = ({ articles }) => {
                     Toza Hudud <br /> <span className="text-emerald-500 italic">"27-MAK"</span>
                   </h3>
                   <p className="text-slate-400 text-2xl mb-12 leading-relaxed font-medium max-w-lg">
-                    Tayloq tumani hududini tozalab, <span className="text-white font-black underline decoration-emerald-500 decoration-4 underline-offset-8">"27" raqami</span> bilan ijodiy rasmga tushing va pul mukofotini yuting!
+                    Hududni tozalab, <span className="text-white font-black underline decoration-emerald-500 decoration-4 underline-offset-8">"27" raqami</span> bilan ijodiy rasmga tushing va pul yuting!
                   </p>
                   
                   <div className="flex flex-col sm:flex-row gap-6">
@@ -215,14 +219,13 @@ const NewsForum: React.FC<NewsForumProps> = ({ articles }) => {
                 </div>
                 
                 <div className="relative h-[400px] md:h-[500px] bg-white/5 rounded-[56px] border border-white/10 flex items-center justify-center overflow-hidden group/reward shadow-inner">
-                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/5 via-transparent to-blue-600/5" />
                    <div className="text-center p-12 relative z-10">
                       <div className="w-24 h-24 bg-emerald-600/20 rounded-full flex items-center justify-center mx-auto mb-8 border border-emerald-500/30 shadow-2xl">
                         <Banknote size={48} className="text-emerald-400 animate-pulse" />
                       </div>
-                      <h4 className="text-2xl font-bold mb-4 tracking-widest text-slate-400 uppercase">Jami Mukofot Jamg'armasi</h4>
+                      <h4 className="text-2xl font-bold mb-4 tracking-widest text-slate-400 uppercase">Mukofot Jamg'armasi</h4>
                       <div className="flex flex-col">
-                        <span className="text-emerald-500 font-black text-7xl md:text-8xl tracking-tighter mb-2 animate-in fade-in slide-in-from-bottom-5 duration-700">2.2M</span>
+                        <span className="text-emerald-500 font-black text-7xl md:text-8xl tracking-tighter mb-2">2.2 mln</span>
                         <span className="text-slate-500 font-black text-xl uppercase tracking-[0.4em]">O'zbek so'mi</span>
                       </div>
                    </div>
@@ -243,13 +246,12 @@ const NewsForum: React.FC<NewsForumProps> = ({ articles }) => {
               <div className="grid md:grid-cols-3 gap-10">
                 {PRIZES.map((p, i) => (
                   <div key={i} className={`bg-white rounded-[60px] p-12 border border-slate-50 ${p.shadow} hover:-translate-y-4 transition-all duration-500 flex flex-col items-center text-center relative group overflow-hidden`}>
-                     <div className={`absolute inset-0 bg-gradient-to-br ${p.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
                      <div className={`w-28 h-28 bg-gradient-to-br ${p.color} rounded-[36px] flex items-center justify-center mb-10 shadow-2xl group-hover:rotate-12 transition-transform duration-500 scale-110`}>
                         {p.icon}
                      </div>
                      <span className="text-xs font-black uppercase text-slate-400 tracking-[0.3em] mb-4">{p.rank}</span>
                      <h4 className="text-5xl font-black text-slate-900 mb-4 tracking-tighter">{p.amount} <span className="text-lg text-emerald-500">so'm</span></h4>
-                     <p className="px-6 py-2.5 bg-slate-50 rounded-full text-[11px] font-black uppercase text-emerald-600 tracking-widest border border-slate-100 group-hover:bg-white group-hover:shadow-md transition-all">
+                     <p className="px-6 py-2.5 bg-slate-50 rounded-full text-[11px] font-black uppercase text-emerald-600 tracking-widest border border-slate-100">
                        + {p.bonus}
                      </p>
                   </div>
@@ -265,42 +267,26 @@ const NewsForum: React.FC<NewsForumProps> = ({ articles }) => {
                        <ImageIcon size={32} />
                     </div>
                     <div>
-                       <h3 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Eko-Arxiv Galereyasi</h3>
-                       <p className="text-slate-400 font-bold text-sm tracking-wide">Eng yorqin lahzalar muhrlangan sahifalar</p>
+                       <h3 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Forum Galereyasi</h3>
+                       <p className="text-slate-400 font-bold text-sm tracking-wide">Tarixga muhrlangan yashil lahzalar</p>
                     </div>
                  </div>
-                 <button className="flex items-center gap-3 text-slate-500 font-black uppercase text-xs tracking-widest hover:text-emerald-600 transition-colors">
-                    Barcha rasmlar <ArrowRight size={18} />
-                 </button>
               </div>
               
               <div className="grid md:grid-cols-2 gap-12">
                 {FORUM_GALLERY.map((img, i) => (
                   <div key={i} className="group relative rounded-[64px] overflow-hidden shadow-3xl h-[500px] border-8 border-white bg-slate-100">
-                    <img src={img.url} className="w-full h-full object-cover transition-all duration-[1500ms] group-hover:scale-110 group-hover:rotate-1" alt={img.title} />
-                    
-                    {/* Glass Overlay Tag */}
-                    <div className="absolute top-8 left-8 px-5 py-2.5 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full text-[10px] font-black text-white uppercase tracking-[0.2em] shadow-xl">
+                    <img src={img.url} className="w-full h-full object-cover transition-all duration-[1500ms] group-hover:scale-110" alt={img.title} />
+                    <div className="absolute top-8 left-8 px-5 py-2.5 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full text-[10px] font-black text-white uppercase tracking-[0.2em]">
                        {img.tag}
                     </div>
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/10 to-transparent flex flex-col justify-end p-12 opacity-0 group-hover:opacity-100 transition-all duration-700 translate-y-8 group-hover:translate-y-0">
-                       <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-xl">
-                             <Maximize2 size={20} />
-                          </div>
-                          <h4 className="text-4xl font-black text-white tracking-tighter">{img.title}</h4>
-                       </div>
-                       <p className="text-slate-300 font-medium text-lg leading-relaxed max-w-md">
-                          {img.desc}
-                       </p>
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/10 to-transparent flex flex-col justify-end p-12 opacity-0 group-hover:opacity-100 transition-all duration-700">
+                       <h4 className="text-4xl font-black text-white tracking-tighter mb-4">{img.title}</h4>
+                       <p className="text-slate-300 font-medium text-lg leading-relaxed max-w-md">{img.desc}</p>
                        <div className="mt-8 flex items-center gap-2 text-emerald-400 font-black text-xs uppercase tracking-widest">
                           <Eye size={16} /> Batafsil ko'rish
                        </div>
                     </div>
-                    
-                    {/* Hover Glow Effect */}
-                    <div className="absolute inset-0 border-[20px] border-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                   </div>
                 ))}
               </div>
@@ -310,17 +296,13 @@ const NewsForum: React.FC<NewsForumProps> = ({ articles }) => {
 
         {activeTab === 'leaderboard' && (
           <div className="bg-white rounded-[64px] p-10 md:p-20 shadow-2xl border border-slate-50 relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-10 opacity-[0.03] pointer-events-none">
-                <Medal size={400} />
-             </div>
-             
              <div className="flex items-center gap-6 mb-16 relative z-10">
                <div className="p-5 bg-amber-50 text-amber-600 rounded-[32px] shadow-lg shadow-amber-100/50">
                  <TrendingUp size={40} />
                </div>
                <div>
                  <h3 className="text-5xl font-black text-slate-900 tracking-tighter uppercase">Eko-Reyting</h3>
-                 <p className="text-slate-400 font-bold tracking-[0.2em] uppercase text-xs mt-1">Haftalik faol o'quvchilar</p>
+                 <p className="text-slate-400 font-bold tracking-[0.2em] uppercase text-xs mt-1">27-Maktab faollari</p>
                </div>
              </div>
 
@@ -328,18 +310,15 @@ const NewsForum: React.FC<NewsForumProps> = ({ articles }) => {
                 {LEADERBOARD.map((user) => (
                   <div key={user.rank} className="flex items-center justify-between p-8 bg-slate-50 rounded-[40px] hover:bg-white hover:shadow-2xl transition-all border border-transparent hover:border-emerald-100 group cursor-pointer">
                     <div className="flex items-center gap-8">
-                      <div className={`w-16 h-16 rounded-3xl flex items-center justify-center font-black text-2xl transition-transform group-hover:rotate-6 ${
+                      <div className={`w-16 h-16 rounded-3xl flex items-center justify-center font-black text-2xl ${
                         user.rank === 1 ? 'bg-amber-400 text-white shadow-xl shadow-amber-200' : 'bg-slate-300 text-slate-700'
                       }`}>
                         {user.rank}
                       </div>
-                      <div className="relative">
-                        <img src={user.avatar} className="w-20 h-20 rounded-[24px] border-4 border-white shadow-xl object-cover" alt={user.name} />
-                        {user.rank === 1 && <div className="absolute -top-3 -right-3 bg-amber-400 text-white p-1.5 rounded-full border-2 border-white"><Sparkles size={12} /></div>}
-                      </div>
+                      <img src={user.avatar} className="w-20 h-20 rounded-[24px] border-4 border-white shadow-xl" alt={user.name} />
                       <div>
                         <div className="font-black text-2xl text-slate-800 tracking-tight">{user.name}</div>
-                        <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">27-Maktab Faoli</div>
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Ko'ngilli Eko-Faol</div>
                       </div>
                     </div>
                     <div className="text-right">
@@ -355,49 +334,35 @@ const NewsForum: React.FC<NewsForumProps> = ({ articles }) => {
 
       {showContestModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-6">
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-500" onClick={() => setShowContestModal(false)} />
+          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" onClick={() => setShowContestModal(false)} />
           <div className="relative bg-white w-full max-w-3xl rounded-[64px] shadow-3xl overflow-hidden animate-in zoom-in duration-500 p-10 md:p-16 border-t-[12px] border-emerald-600">
              <div className="flex justify-between items-center mb-12">
-                <div>
-                   <h3 className="text-4xl font-black text-slate-900 tracking-tighter">Isbot Yuklash</h3>
-                   <p className="text-slate-400 font-medium text-sm mt-1">Rasm va ma'lumotlaringizni yuboring.</p>
-                </div>
+                <h3 className="text-4xl font-black text-slate-900 tracking-tighter italic">Musobaqa Isboti</h3>
                 <button onClick={() => setShowContestModal(false)} className="p-4 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X size={28} /></button>
              </div>
              
              <form onSubmit={handleSubmitContest} className="space-y-10">
                 <div className="grid md:grid-cols-2 gap-10">
                   <div className="space-y-8">
-                    <div className="space-y-2">
-                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Ism va Familiya</label>
-                       <input required type="text" className="w-full px-8 py-5 bg-slate-50 border-none rounded-3xl font-bold text-slate-800 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all" placeholder="Abbos Abdurazoqov..." />
-                    </div>
-                    <div className="space-y-2">
-                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Telegram foydalanuvchi nomi</label>
-                       <input required type="text" className="w-full px-8 py-5 bg-slate-50 border-none rounded-3xl font-bold text-slate-800 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all" placeholder="@username..." />
-                    </div>
+                    <input required type="text" className="w-full px-8 py-5 bg-slate-50 border-none rounded-3xl font-bold text-slate-800" placeholder="Ismingiz..." />
+                    <input required type="text" className="w-full px-8 py-5 bg-slate-50 border-none rounded-3xl font-bold text-slate-800" placeholder="@telegram_username..." />
                   </div>
                   
                   <div 
                     onClick={() => fileInputRef.current?.click()} 
-                    className={`border-4 border-dashed rounded-[48px] flex flex-col items-center justify-center cursor-pointer min-h-[250px] transition-all relative overflow-hidden group ${
-                      previewImage ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-slate-50 hover:bg-slate-100 hover:border-emerald-300'
+                    className={`border-4 border-dashed rounded-[48px] flex flex-col items-center justify-center cursor-pointer min-h-[250px] transition-all overflow-hidden ${
+                      previewImage ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-slate-50 hover:border-emerald-300'
                     }`}
                   >
                     {previewImage ? (
-                       <>
-                         <img src={previewImage} className="w-full h-full object-cover" alt="Preview" />
-                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <Camera className="text-white" size={48} />
-                         </div>
-                       </>
+                      <img src={previewImage} className="w-full h-full object-cover" alt="Preview" />
                     ) : (
-                       <>
-                         <div className="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center text-emerald-600 mb-4 shadow-xl">
-                            <Camera size={32} />
-                         </div>
-                         <p className="text-slate-400 font-black text-xs uppercase tracking-widest">Rasm tanlang</p>
-                       </>
+                      <>
+                        <div className="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center text-emerald-600 mb-4 shadow-xl">
+                          <Camera size={32} />
+                        </div>
+                        <p className="text-slate-400 font-black text-xs uppercase tracking-widest text-center px-4">Rasmni yuklang</p>
+                      </>
                     )}
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
                   </div>
@@ -405,9 +370,9 @@ const NewsForum: React.FC<NewsForumProps> = ({ articles }) => {
                 
                 <button 
                   disabled={isSubmitting || !previewImage} 
-                  className="w-full py-7 bg-emerald-600 text-white rounded-[32px] font-black text-2xl hover:bg-emerald-700 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-emerald-200 disabled:bg-slate-100 disabled:text-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-4"
+                  className="w-full py-7 bg-emerald-600 text-white rounded-[32px] font-black text-2xl hover:bg-emerald-700 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl disabled:bg-slate-100 disabled:text-slate-300 flex items-center justify-center gap-4"
                 >
-                  {isSubmitting ? <><div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin" /> Yuborilmoqda...</> : <>Musobaqada qatnashish <Rocket size={24} /></>}
+                  {isSubmitting ? "Yuborilmoqda..." : <>Qatnashish <Rocket size={24} /></>}
                 </button>
              </form>
           </div>
@@ -422,7 +387,7 @@ const TabButton = ({ active, onClick, icon, label }: any) => (
     onClick={onClick}
     className={`flex items-center gap-3 px-10 py-5 rounded-[24px] font-black text-xs uppercase tracking-[0.2em] shrink-0 transition-all duration-300 ${
       active 
-        ? 'bg-slate-950 text-white shadow-2xl shadow-slate-300 scale-105' 
+        ? 'bg-slate-950 text-white shadow-2xl scale-105' 
         : 'bg-white text-slate-400 border border-slate-100 hover:bg-slate-50'
     }`}
   >
