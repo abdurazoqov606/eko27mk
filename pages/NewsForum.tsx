@@ -15,7 +15,7 @@ const LEADERBOARD = [
 
 const FORUM_GALLERY = [
   { 
-    url: "https://images.unsplash.com/photo-1540575861501-7ad05823c9f5?q=80&w=2000", 
+    url: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=2000", 
     title: "Yashil Konferensiya", 
     desc: "Tayloq tumanida o'tkazilgan yirik eko-forumdan lavha.",
     tag: "MAHALLIY"
@@ -25,6 +25,18 @@ const FORUM_GALLERY = [
     title: "Yosh Ko'ngillilar", 
     desc: "27-maktab o'quvchilarining jamoaviy eko-tashabbusi.",
     tag: "FAOL YOSHLAR"
+  },
+  { 
+    url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2000", 
+    title: "Eko-Texnologiyalar", 
+    desc: "Innovatsion g'oyalar taqdimoti jarayoni.",
+    tag: "INNOVATSIYA"
+  },
+  { 
+    url: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?q=80&w=2000", 
+    title: "Maktab Bog'i", 
+    desc: "O'quvchilar tomonidan ekilgan mevali daraxtlar.",
+    tag: "NATIJA"
   }
 ];
 
@@ -273,19 +285,35 @@ const NewsForum: React.FC<NewsForumProps> = ({ articles }) => {
                  </div>
               </div>
               
-              <div className="grid md:grid-cols-2 gap-12">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {FORUM_GALLERY.map((img, i) => (
-                  <div key={i} className="group relative rounded-[64px] overflow-hidden shadow-3xl h-[500px] border-8 border-white bg-slate-100">
-                    <img src={img.url} className="w-full h-full object-cover transition-all duration-[1500ms] group-hover:scale-110" alt={img.title} />
-                    <div className="absolute top-8 left-8 px-5 py-2.5 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full text-[10px] font-black text-white uppercase tracking-[0.2em]">
-                       {img.tag}
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/10 to-transparent flex flex-col justify-end p-12 opacity-0 group-hover:opacity-100 transition-all duration-700">
-                       <h4 className="text-4xl font-black text-white tracking-tighter mb-4">{img.title}</h4>
-                       <p className="text-slate-300 font-medium text-lg leading-relaxed max-w-md">{img.desc}</p>
-                       <div className="mt-8 flex items-center gap-2 text-emerald-400 font-black text-xs uppercase tracking-widest">
-                          <Eye size={16} /> Batafsil ko'rish
+                  <div 
+                    key={i} 
+                    className={`group relative rounded-[48px] overflow-hidden shadow-2xl transition-all duration-700 bg-slate-100 border-4 border-white ${
+                      i % 3 === 0 ? 'lg:col-span-2 lg:row-span-2 h-[400px] lg:h-[600px]' : 'h-[300px] lg:h-[288px]'
+                    }`}
+                  >
+                    <img 
+                      src={img.url} 
+                      className="w-full h-full object-cover transition-all duration-[2000ms] group-hover:scale-125 group-hover:rotate-2" 
+                      alt={img.title} 
+                    />
+                    
+                    {/* Overlay on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-8">
+                       <div className="inline-flex self-start px-4 py-1.5 bg-emerald-500/20 backdrop-blur-md border border-white/30 rounded-full text-[9px] font-black text-white uppercase tracking-widest mb-4">
+                         {img.tag}
                        </div>
+                       <h4 className="text-2xl font-black text-white tracking-tighter mb-2">{img.title}</h4>
+                       <p className="text-slate-300 text-xs font-medium leading-relaxed line-clamp-2">{img.desc}</p>
+                       <div className="mt-6 flex items-center gap-2 text-emerald-400 font-black text-[10px] uppercase tracking-widest">
+                          <Eye size={14} /> Ko'rish
+                       </div>
+                    </div>
+
+                    {/* Static Tag */}
+                    <div className="absolute top-6 left-6 px-4 py-1.5 bg-white/20 backdrop-blur-md border border-white/20 rounded-full text-[8px] font-black text-white uppercase tracking-widest group-hover:opacity-0 transition-opacity">
+                       {img.tag}
                     </div>
                   </div>
                 ))}

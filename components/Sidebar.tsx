@@ -61,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, onNavigate, user, onLo
         ))}
       </nav>
 
-      {/* Admin Panel Entry (Replacing Profile Area) */}
+      {/* Admin Panel Entry */}
       <div className="p-8 border-t border-slate-800 bg-black/20">
         <button
           onClick={() => onNavigate(AppSection.ADMIN_PANEL)}

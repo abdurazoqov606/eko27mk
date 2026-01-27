@@ -1,8 +1,7 @@
 {
-  "name": "EcoQadam 2026 - Tayloq & 27-Maktab",
-  "description": "Tayloq tumani 27-maktab o'quvchilari tomonidan yaratilgan innovatsion ekologik platforma va Telegram bot boshqaruv tizimi.",
+  "name": "Eco27",
+  "description": "Tayloq tumani 27-maktab o'quvchilari tomonidan yaratilgan innovatsion ekologik platforma.",
   "requestFramePermissions": [
-    "geolocation",
-    "camera"
+    "geolocation"
   ]
 }

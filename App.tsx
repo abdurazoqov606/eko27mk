@@ -19,7 +19,6 @@ import AuthModal from './components/AuthModal';
 import { AppSection, User, EcoArticle } from './types';
 import { ECO_ARTICLES as INITIAL_ARTICLES } from './constants';
 import { Send, MessageCircle, X, Sparkles, Leaf } from 'lucide-react';
-import { getEcoAdvice } from './services/geminiService';
 
 const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<AppSection>(AppSection.HOME);
@@ -28,7 +27,13 @@ const App: React.FC = () => {
   const [onlineCount, setOnlineCount] = useState(542);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   
-  // Dynamic Content State
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOnlineCount(prev => prev + (Math.random() > 0.5 ? 1 : -1));
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [news, setNews] = useState<EcoArticle[]>(INITIAL_ARTICLES);
   const [siteConfig, setSiteConfig] = useState({
     heroTitle: "EKO 27",
@@ -38,33 +43,40 @@ const App: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatMessage, setChatMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<{role: 'user' | 'bot', text: string}[]>([]);
-  const [loadingAdvice, setLoadingAdvice] = useState(false);
+  const [messageCount, setMessageCount] = useState(0);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setOnlineCount(prev => prev + (Math.random() > 0.5 ? 1 : -1));
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleSendMessage = async () => {
+  const handleSendMessage = () => {
     if (!chatMessage.trim()) return;
+    
     const userText = chatMessage;
-    setChatHistory([...chatHistory, { role: 'user', text: userText }]);
+    setChatHistory(prev => [...prev, { role: 'user', text: userText }]);
     setChatMessage('');
-    setLoadingAdvice(true);
-    const response = await getEcoAdvice(userText);
-    setChatHistory(prev => [...prev, { role: 'bot', text: response || 'Xatolik.' }]);
-    setLoadingAdvice(false);
+
+    if (messageCount === 0) {
+      // 1-xabar: Loyiha va muallif haqida
+      setTimeout(() => {
+        setChatHistory(prev => [...prev, { 
+          role: 'bot', 
+          text: "Salom! Men EKO 27 loyihasining yordamchisiman. Meni Abdurazoqov Abbos yaratgan. Sizga qanday yordam bera olaman?" 
+        }]);
+        setMessageCount(1);
+      }, 600);
+    } else {
+      // 2-xabar: ChatGPT redirect
+      setTimeout(() => {
+        setChatHistory(prev => [...prev, { 
+          role: 'bot', 
+          text: "Batafsil ma'lumot olishingiz uchun sizni ChatGPT xizmatiga yo'naltirmoqdaman..." 
+        }]);
+        setTimeout(() => {
+          window.open('https://chatgpt.com', '_blank');
+        }, 1200);
+      }, 600);
+    }
   };
 
-  const addNews = (article: EcoArticle) => {
-    setNews([article, ...news]);
-  };
-
-  const deleteNews = (id: string) => {
-    setNews(news.filter(n => n.id !== id));
-  };
+  const addNews = (article: EcoArticle) => setNews([article, ...news]);
+  const deleteNews = (id: string) => setNews(news.filter(n => n.id !== id));
 
   const renderSection = () => {
     switch (activeSection) {
@@ -76,7 +88,7 @@ const App: React.FC = () => {
       case AppSection.NEWS_FORUM: return <NewsForum articles={news} />;
       case AppSection.COMMUNITY_CHAT: return <CommunityChat user={user} onLoginRequest={() => setShowAuthModal(true)} />;
       case AppSection.ADMIN_PANEL: 
-      case AppSection.PROFILE: // Redirect profile requests to Admin Panel
+      case AppSection.PROFILE:
         return (
           <AdminPanel 
             isAuthenticated={isAdminAuthenticated} 
@@ -115,9 +127,10 @@ const App: React.FC = () => {
 
       <BottomNav activeSection={activeSection} onNavigate={setActiveSection} />
 
-      <div className="fixed bottom-24 lg:bottom-8 right-6 lg:right-8 z-[100]">
+      {/* Faqat matnli chat */}
+      <div className="fixed bottom-24 lg:bottom-8 right-6 lg:right-8 z-[100] flex flex-col gap-4">
         {isChatOpen && (
-          <div className="bg-white rounded-[40px] shadow-2xl border border-emerald-100 w-[420px] max-w-[95vw] mb-4 animate-in slide-in-from-bottom-5 flex flex-col h-[600px] overflow-hidden">
+          <div className="bg-white rounded-[40px] shadow-2xl border border-emerald-100 w-[380px] max-w-[90vw] mb-4 animate-in slide-in-from-bottom-5 flex flex-col h-[500px] overflow-hidden">
              <div className="p-6 bg-emerald-600 text-white flex justify-between items-center relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 blur-2xl" />
                 <div className="flex items-center gap-3 relative z-10">
@@ -125,8 +138,8 @@ const App: React.FC = () => {
                     <Sparkles size={20} />
                   </div>
                   <div>
-                    <span className="font-black text-[10px] block opacity-70 uppercase tracking-widest">Abdurazoqov Abbos</span>
-                    <span className="font-black text-sm uppercase tracking-widest">AI Eko-Ekspert</span>
+                    <span className="font-black text-[10px] block opacity-70 uppercase tracking-widest">A. Abbos tomonidan</span>
+                    <span className="font-black text-sm uppercase tracking-widest">Eko-Yordamchi</span>
                   </div>
                 </div>
                 <button onClick={() => setIsChatOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-all relative z-10">
@@ -137,7 +150,7 @@ const App: React.FC = () => {
                 {chatHistory.length === 0 && (
                    <div className="text-center py-10 opacity-50">
                       <Leaf className="mx-auto mb-4 text-emerald-500" size={40} />
-                      <p className="text-xs font-bold uppercase tracking-widest">Yashil dunyo sari birga qadam tashlaymiz!</p>
+                      <p className="text-xs font-bold uppercase tracking-widest">Savolingizni yozing</p>
                    </div>
                 )}
                 {chatHistory.map((chat, i) => (
@@ -151,17 +164,6 @@ const App: React.FC = () => {
                     </div>
                   </div>
                 ))}
-                {loadingAdvice && (
-                  <div className="flex justify-start">
-                    <div className="bg-white border border-slate-100 p-4 rounded-3xl animate-pulse">
-                      <div className="flex gap-1">
-                        <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
-                        <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
-                        <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
-                      </div>
-                    </div>
-                  </div>
-                )}
              </div>
              <div className="p-4 bg-white border-t border-slate-50 flex gap-2">
                 <input 
@@ -169,18 +171,18 @@ const App: React.FC = () => {
                   onChange={e => setChatMessage(e.target.value)} 
                   onKeyDown={e => e.key === 'Enter' && handleSendMessage()} 
                   className="flex-grow bg-slate-50 rounded-2xl px-5 py-4 text-xs outline-none font-bold focus:bg-white focus:ring-2 focus:ring-emerald-500/10 transition-all" 
-                  placeholder="Ekologik savol bering..." 
+                  placeholder="Xabar yozing..." 
                 />
                 <button 
                   onClick={handleSendMessage} 
-                  disabled={!chatMessage.trim() || loadingAdvice}
-                  className="p-4 bg-emerald-600 text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-emerald-200 disabled:opacity-50"
+                  className="p-4 bg-emerald-600 text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg"
                 >
                   <Send size={18} />
                 </button>
              </div>
           </div>
         )}
+
         <button 
           onClick={() => setIsChatOpen(!isChatOpen)} 
           className="w-16 h-16 bg-emerald-600 text-white rounded-[24px] shadow-3xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group"
