@@ -21,7 +21,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isAuthenticated, onAuthenticate
   const [isHacking, setIsHacking] = useState(false);
   const [hackText, setHackText] = useState('INITIALIZING...');
   
-  // Audio uchun ref
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Form States
@@ -77,18 +76,18 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isAuthenticated, onAuthenticate
     if (password === '2010abbos') {
       setIsHacking(true);
       
-      // Musiqani ijro etish
+      // Musiqani ijro etish (Cyber SFX)
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(err => console.log("Audio play error:", err));
+        audioRef.current.play().catch(err => console.log("Audio play blocked by browser. Interaction needed."));
       }
 
       const phrases = [
-        'BYPASSING FIREWALL...', 
-        'DECRYPTING ACCESS CODES...', 
-        'CONNECTING TO CLOUD SERVER...', 
-        'AUTHORIZING ADMIN PRIVILEGES...', 
-        'WELCOME MASTER ABBOS'
+        'BYPASSING SECURITY...', 
+        'DECRYPTING ADMIN HASH...', 
+        'UPLOADING CORE MODULES...', 
+        'ESTABLISHING ENCRYPTED LINK...', 
+        'ACCESS GRANTED: MASTER ABBOS'
       ];
       
       let i = 0;
@@ -97,13 +96,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isAuthenticated, onAuthenticate
           setHackText(phrases[i]); 
           i++; 
         }
-      }, 800);
+      }, 900);
 
       setTimeout(() => { 
         clearInterval(interval); 
         setIsHacking(false); 
         onAuthenticate(); 
-      }, 4500);
+      }, 5000);
     } else {
       alert('Parol noto\'g\'ri!');
     }
@@ -135,14 +134,22 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isAuthenticated, onAuthenticate
     const collectionName = activeTab === 'news' ? "news" : activeTab === 'library' ? "library" : "games";
     try {
       if (editingId) {
-        await updateDoc(doc(db, collectionName, editingId), { ...newItem, updatedAt: serverTimestamp() });
-        alert("Muvaffaqiyatli yangilandi!");
+        // MA'LUMOTNI YANGILASH (EDIT)
+        await updateDoc(doc(db, collectionName, editingId), { 
+          ...newItem, 
+          updatedAt: serverTimestamp() 
+        });
+        alert("Ma'lumot muvaffaqiyatli yangilandi!");
       } else {
-        await addDoc(collection(db, collectionName), { ...newItem, timestamp: serverTimestamp() });
+        // YANGI MA'LUMOT QO'SHISH (CREATE)
+        await addDoc(collection(db, collectionName), { 
+          ...newItem, 
+          timestamp: serverTimestamp() 
+        });
         alert("Yangi ma'lumot qo'shildi!");
       }
       resetForm();
-    } catch (e) { alert("Xatolik!"); }
+    } catch (e) { alert("Saqlashda xatolik!"); }
     setLoading(false);
   };
 
@@ -165,8 +172,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isAuthenticated, onAuthenticate
     if (!window.confirm("Haqiqatdan ham ushbu ma'lumotni o'chirmoqchimisiz?")) return;
     try { 
       await deleteDoc(doc(db, collectionName, id)); 
-      alert("O'chirildi!");
-    } catch (e) { alert("Xatolik!"); }
+      alert("Ma'lumot o'chirildi!");
+    } catch (e) { alert("O'chirishda xatolik!"); }
   };
 
   const resetForm = () => {
@@ -184,7 +191,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isAuthenticated, onAuthenticate
 
   return (
     <div className="animate-fade-in pb-20 pt-10">
-      {/* Yashirin audio element - Cyber Sound */}
+      {/* Cyber Music SFX */}
       <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto" />
 
       {isHacking && (
@@ -194,9 +201,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isAuthenticated, onAuthenticate
                <Activity size={128} className="text-emerald-500 absolute inset-0 animate-ping opacity-20" />
                <Activity size={128} className="text-emerald-500 relative animate-pulse" />
             </div>
-            <p className="text-emerald-400 font-mono text-xl tracking-[0.3em] uppercase animate-pulse">{hackText}</p>
-            <div className="mt-8 w-64 h-1 bg-white/10 rounded-full overflow-hidden">
-               <div className="h-full bg-emerald-500 animate-[loading_4.5s_ease-in-out_forwards]" />
+            <p className="text-emerald-400 font-mono text-xl tracking-[0.3em] uppercase animate-pulse mb-4">{hackText}</p>
+            <div className="w-80 h-2 bg-emerald-900/30 rounded-full overflow-hidden border border-emerald-500/20">
+               <div className="h-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)] animate-[loading_5s_ease-in-out_forwards]" />
             </div>
           </div>
           <style>{`
@@ -208,28 +215,26 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isAuthenticated, onAuthenticate
       {!isAuthenticated ? (
         <div className="min-h-[70vh] flex items-center justify-center p-6">
           <div className="w-full max-w-md bg-slate-900 rounded-[56px] p-12 shadow-3xl border border-white/5 relative overflow-hidden group">
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-emerald-500" />
+            <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500" />
             <Lock size={48} className="text-emerald-500 mx-auto mb-10 group-hover:scale-110 transition-transform" />
-            <h2 className="text-3xl font-black text-white text-center mb-10 italic uppercase tracking-tighter">ADMIN LOGIN</h2>
+            <h2 className="text-3xl font-black text-white text-center mb-10 italic uppercase tracking-tighter">ADMIN TERMINAL</h2>
             <form onSubmit={handleLogin} className="space-y-8">
-              <div className="relative">
-                <input 
-                  type="password" 
-                  placeholder="KODNI KIRITING..." 
-                  className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-[32px] text-white font-black text-center tracking-[0.5em] outline-none focus:border-emerald-500/50 transition-all" 
-                  value={password} 
-                  onChange={e => setPassword(e.target.value)} 
-                />
-              </div>
-              <button className="w-full py-5 bg-emerald-600 text-white rounded-[32px] font-black uppercase shadow-2xl shadow-emerald-600/20 hover:bg-emerald-500 active:scale-95 transition-all">SISTEMAGA KIRISH</button>
+              <input 
+                type="password" 
+                placeholder="ACCESS PASSWORD..." 
+                className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-[32px] text-white font-black text-center tracking-[0.5em] outline-none focus:border-emerald-500 transition-all" 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+              />
+              <button className="w-full py-6 bg-emerald-600 text-white rounded-[32px] font-black uppercase shadow-2xl shadow-emerald-600/20 hover:bg-emerald-500 active:scale-95 transition-all">SYSTEM OVERRIDE</button>
             </form>
-            <p className="mt-8 text-center text-[10px] text-white/20 font-bold uppercase tracking-widest">ECO SYSTEM v2.7 Secure Access</p>
+            <p className="mt-8 text-center text-[10px] text-white/20 font-bold uppercase tracking-widest">ECO-OS 2.7.0 Secure Node</p>
           </div>
         </div>
       ) : (
         <>
           <div className="mb-16 flex flex-col lg:flex-row justify-between items-center gap-10">
-            <h2 className="text-5xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">NAZORAT <span className="text-emerald-600">PANELI</span></h2>
+            <h2 className="text-5xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">TERMINAL <span className="text-emerald-600">OVERVIEW</span></h2>
             <div className="flex bg-white p-2.5 rounded-[32px] shadow-3xl overflow-x-auto no-scrollbar">
                <AdminTab active={activeTab === 'news'} onClick={() => {resetForm(); setActiveTab('news');}} icon={<Newspaper size={20} />} label="Yangiliklar" />
                <AdminTab active={activeTab === 'library'} onClick={() => {resetForm(); setActiveTab('library');}} icon={<BookOpen size={20} />} label="Kutubxona" />
@@ -246,7 +251,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isAuthenticated, onAuthenticate
                     <div className="space-y-12 animate-in slide-in-from-bottom-4">
                       <div className="flex items-center gap-4 mb-8">
                         <Trophy className="text-amber-500" size={32} />
-                        <h3 className="text-3xl font-black text-slate-900 italic uppercase">Tanlov Sozlamalari</h3>
+                        <h3 className="text-3xl font-black text-slate-900 italic uppercase">Tanlov Boshqaruvi</h3>
                       </div>
 
                       <div className="grid md:grid-cols-2 gap-10">
@@ -269,7 +274,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isAuthenticated, onAuthenticate
                       </div>
 
                       <div className="pt-10 border-t border-slate-100">
-                        <h4 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3 italic"><Coins className="text-emerald-500" /> Mukofotlar</h4>
+                        <h4 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3 italic"><Coins className="text-emerald-500" /> Mukofot Pullari</h4>
                         <div className="grid md:grid-cols-3 gap-8">
                            {contestConfig.prizes.map((prize, idx) => (
                              <div key={idx} className="p-8 bg-slate-50 rounded-[40px] border border-slate-100 shadow-sm space-y-6">
@@ -277,95 +282,109 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isAuthenticated, onAuthenticate
                                    <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center font-black">{idx + 1}</div>
                                    <span className="font-black text-slate-400 uppercase text-[10px] tracking-widest">{prize.rank}</span>
                                 </div>
-                                <input value={prize.amount} onChange={e => {
-                                  const newPrizes = [...contestConfig.prizes];
-                                  newPrizes[idx].amount = e.target.value;
-                                  setContestConfig({...contestConfig, prizes: newPrizes});
-                                }} className="w-full px-6 py-4 bg-white rounded-2xl font-black text-emerald-600 outline-none shadow-sm" />
-                                <input value={prize.bonus} onChange={e => {
-                                  const newPrizes = [...contestConfig.prizes];
-                                  newPrizes[idx].bonus = e.target.value;
-                                  setContestConfig({...contestConfig, prizes: newPrizes});
-                                }} className="w-full px-6 py-4 bg-white rounded-2xl font-bold text-slate-700 outline-none shadow-sm" />
+                                <div className="space-y-4">
+                                  <input 
+                                    value={prize.amount} 
+                                    placeholder="Pul miqdori..."
+                                    onChange={e => {
+                                      const newPrizes = [...contestConfig.prizes];
+                                      newPrizes[idx].amount = e.target.value;
+                                      setContestConfig({...contestConfig, prizes: newPrizes});
+                                    }} 
+                                    className="w-full px-6 py-4 bg-white rounded-2xl font-black text-emerald-600 outline-none shadow-sm" 
+                                  />
+                                  <input 
+                                    value={prize.bonus} 
+                                    placeholder="Mukofot turi..."
+                                    onChange={e => {
+                                      const newPrizes = [...contestConfig.prizes];
+                                      newPrizes[idx].bonus = e.target.value;
+                                      setContestConfig({...contestConfig, prizes: newPrizes});
+                                    }} 
+                                    className="w-full px-6 py-4 bg-white rounded-2xl font-bold text-slate-700 outline-none shadow-sm" 
+                                  />
+                                </div>
                              </div>
                            ))}
                         </div>
                       </div>
 
                       <button onClick={handleSaveContestConfig} disabled={loading} className="w-full py-8 bg-emerald-600 text-white rounded-[40px] font-black text-2xl shadow-3xl flex items-center justify-center gap-4 hover:bg-emerald-500 transition-all">
-                        {loading ? <Loader2 className="animate-spin" /> : <>SAQLASH <Save size={28} /></>}
+                        {loading ? <Loader2 className="animate-spin" /> : <>MA'LUMOTLARNI SAQLASH <Save size={28} /></>}
                       </button>
                     </div>
                   ) : (
-                    <div className="grid lg:grid-cols-1 gap-16">
+                    <div className="space-y-16">
                        {/* Form Section */}
-                       <div className="bg-slate-50 p-10 md:p-14 rounded-[56px] border border-slate-100">
+                       <div className="bg-slate-50 p-10 md:p-14 rounded-[56px] border border-slate-100 shadow-inner">
                           <div className="flex items-center justify-between mb-10">
                              <h3 className="text-3xl font-black italic uppercase flex items-center gap-4">
                                {editingId ? <Edit3 className="text-blue-500" /> : <Plus className="text-emerald-500" />}
-                               {editingId ? 'Ma\'lumotni Tahrirlash' : 'Yangi Qo\'shish'}
+                               {editingId ? 'Ma\'lumotni Tahrirlash' : 'Yangi Ma\'lumot'}
                              </h3>
-                             {editingId && <button onClick={resetForm} className="p-3 bg-rose-100 text-rose-600 rounded-2xl"><X /></button>}
+                             {editingId && (
+                               <button onClick={resetForm} className="px-6 py-3 bg-rose-100 text-rose-600 rounded-2xl font-black text-xs uppercase flex items-center gap-2">
+                                 <X size={16} /> BEKOR QILISH
+                               </button>
+                             )}
                           </div>
                           
                           <div className="grid md:grid-cols-2 gap-10">
                              <div className="space-y-6">
                                 <div className="space-y-2">
                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Sarlavha</label>
-                                   <input value={newItem.title} onChange={e => setNewItem({...newItem, title: e.target.value})} className="w-full px-8 py-5 bg-white rounded-[28px] font-bold border-2 border-transparent focus:border-emerald-500 shadow-sm" placeholder="Sarlavha yozing..." />
+                                   <input value={newItem.title} onChange={e => setNewItem({...newItem, title: e.target.value})} className="w-full px-8 py-5 bg-white rounded-[28px] font-bold border-2 border-transparent focus:border-emerald-500 shadow-sm" placeholder="Sarlavha..." />
                                 </div>
                                 <div className="space-y-2">
-                                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Rasm (URL yoki Fayl)</label>
+                                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Rasm URL yoki Yuklash</label>
                                    <div className="flex gap-4">
                                       <input className="flex-grow px-8 py-5 bg-white rounded-[28px] text-sm border-2 border-transparent focus:border-emerald-500 shadow-sm" value={newItem.image} onChange={e => setNewItem({...newItem, image: e.target.value})} placeholder="https://..." />
                                       <button onClick={() => fileInputRef.current?.click()} className="p-5 bg-emerald-100 text-emerald-600 rounded-[24px] hover:bg-emerald-600 hover:text-white transition-all"><ImageIcon size={24} /></button>
                                       <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
                                    </div>
                                 </div>
-                                {activeTab === 'games' && (
-                                  <div className="space-y-2">
-                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">O'yin URL manzili</label>
-                                     <input value={newItem.url} onChange={e => setNewItem({...newItem, url: e.target.value})} className="w-full px-8 py-5 bg-white rounded-[28px] font-bold border-2 border-transparent focus:border-emerald-500 shadow-sm" placeholder="O'yin manzili..." />
-                                  </div>
-                                )}
                              </div>
                              
                              <div className="space-y-6">
                                 <div className="space-y-2">
                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Qisqacha tavsif (Excerpt)</label>
-                                   <input value={newItem.excerpt} onChange={e => setNewItem({...newItem, excerpt: e.target.value})} className="w-full px-8 py-5 bg-white rounded-[28px] font-medium border-2 border-transparent focus:border-emerald-500 shadow-sm" placeholder="Qisqacha matn..." />
+                                   <input value={newItem.excerpt} onChange={e => setNewItem({...newItem, excerpt: e.target.value})} className="w-full px-8 py-5 bg-white rounded-[28px] font-medium border-2 border-transparent focus:border-emerald-500 shadow-sm" placeholder="Qisqacha..." />
                                 </div>
                                 <div className="space-y-2">
-                                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">To'liq matn (Content)</label>
-                                   <textarea value={newItem.content} onChange={e => setNewItem({...newItem, content: e.target.value})} className="w-full p-8 bg-white rounded-[32px] h-40 resize-none outline-none border-2 border-transparent focus:border-emerald-500 shadow-sm" placeholder="To'liq batafsil matn..." />
+                                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Batafsil matn</label>
+                                   <textarea value={newItem.content} onChange={e => setNewItem({...newItem, content: e.target.value})} className="w-full p-8 bg-white rounded-[32px] h-40 resize-none outline-none border-2 border-transparent focus:border-emerald-500 shadow-sm" placeholder="Batafsil..." />
                                 </div>
                              </div>
                           </div>
 
                           <button onClick={handleSaveItem} disabled={loading} className={`w-full py-7 mt-10 ${editingId ? 'bg-blue-600' : 'bg-slate-900'} text-white rounded-[32px] font-black text-xl shadow-2xl flex items-center justify-center gap-4 hover:scale-[1.01] transition-all`}>
-                             {loading ? <Loader2 className="animate-spin" /> : editingId ? <>YANGILASH <Save /></> : <>SAQLASH <Plus /></>}
+                             {loading ? <Loader2 className="animate-spin" /> : editingId ? <>O'ZGARIYORNI SAQLASH <Save /></> : <>TIYIZIMGA QO'SHISH <Plus /></>}
                           </button>
                        </div>
 
                        {/* List Section */}
-                       <div className="space-y-8">
-                          <h3 className="text-3xl font-black italic uppercase flex items-center gap-4 px-4">
+                       <div className="space-y-10">
+                          <h3 className="text-3xl font-black italic uppercase flex items-center gap-4 px-4 text-slate-800">
                              <LayoutDashboard className="text-slate-400" />
-                             Mavjud Ro'yxat ({activeTab === 'news' ? news.length : activeTab === 'library' ? library.length : games.length} ta)
+                             Barcha Elementlar ({activeTab === 'news' ? news.length : activeTab === 'library' ? library.length : games.length})
                           </h3>
-                          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
                              {(activeTab === 'news' ? news : activeTab === 'library' ? library : games).map((item) => (
-                               <div key={item.id} className="p-6 bg-white rounded-[40px] border border-slate-100 shadow-sm flex items-center gap-6 hover:shadow-xl transition-all group">
-                                  <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 shrink-0">
-                                     <img src={item.image} className="w-full h-full object-cover" alt="" />
+                               <div key={item.id} className="p-8 bg-white rounded-[48px] border border-slate-100 shadow-sm flex flex-col hover:shadow-2xl hover:border-emerald-200 transition-all group">
+                                  <div className="h-48 rounded-3xl overflow-hidden bg-slate-100 mb-6">
+                                     <img src={item.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
                                   </div>
-                                  <div className="flex-grow min-w-0">
-                                     <h4 className="font-black text-slate-900 truncate italic">{item.title}</h4>
-                                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{item.date || 'Sana yo\'q'}</p>
+                                  <div className="flex-grow mb-8">
+                                     <h4 className="font-black text-slate-900 text-xl truncate italic mb-2">{item.title}</h4>
+                                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{item.date || 'Sana mavjud emas'}</p>
                                   </div>
-                                  <div className="flex gap-2">
-                                     <button onClick={() => startEdit(item)} className="p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all"><Edit3 size={18} /></button>
-                                     <button onClick={() => handleDelete(item.id, activeTab === 'news' ? 'news' : activeTab === 'library' ? 'library' : 'games')} className="p-3 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all"><Trash2 size={18} /></button>
+                                  <div className="flex gap-4 pt-6 border-t border-slate-50">
+                                     <button onClick={() => startEdit(item)} className="flex-grow py-4 bg-blue-50 text-blue-600 rounded-2xl font-black text-xs uppercase flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-all">
+                                        <Edit3 size={18} /> TAHRIRLASH
+                                     </button>
+                                     <button onClick={() => handleDelete(item.id, activeTab === 'news' ? 'news' : activeTab === 'library' ? 'library' : 'games')} className="p-4 bg-rose-50 text-rose-600 rounded-2xl hover:bg-rose-600 hover:text-white transition-all">
+                                        <Trash2 size={20} />
+                                     </button>
                                   </div>
                                </div>
                              ))}
