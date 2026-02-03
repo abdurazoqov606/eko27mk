@@ -10,10 +10,10 @@ export enum AppSection {
   COMMUNITY_CHAT = 'community-chat',
   PROFILE = 'profile',
   GAMES = 'games',
-  MARKET = 'market',
-  MAP = 'map',
   SUPPORT = 'support',
-  ADMIN_PANEL = 'admin-panel'
+  ADMIN_PANEL = 'admin-panel',
+  MARKET = 'market',
+  SETTINGS = 'settings'
 }
 
 export interface User {
@@ -31,24 +31,16 @@ export interface User {
   joinedDate: string;
 }
 
-export interface ChatMessage {
+export interface MarketItem {
   id: string;
-  senderId: string;
-  senderName: string;
-  senderAvatar: string;
-  type: 'text' | 'image' | 'video';
-  text?: string;
-  mediaUrl?: string;
-  timestamp: string;
-  isMe: boolean;
-}
-
-export interface EcoTip {
-  id: string;
-  title: string;
+  name: string;
+  price: string;
+  image: string;
+  phone: string;
   description: string;
+  sellerName: string;
   category: string;
-  icon: string;
+  timestamp: any;
 }
 
 export interface EcoArticle {
@@ -59,6 +51,34 @@ export interface EcoArticle {
   date: string;
   category: string;
   image: string;
+  link?: string;
+}
+
+export interface GameItem {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  url: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar: string;
+  type: 'text' | 'image' | 'video';
+  text?: string;
+  mediaUrl?: string;
+  timestamp: any;
+}
+
+export interface EcoTip {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  icon: string;
 }
 
 export interface QuizQuestion {
@@ -67,7 +87,7 @@ export interface QuizQuestion {
   options: string[];
   correctAnswer: number;
   explanation: string;
-  level: 'easy' | 'medium' | 'hard';
+  level: string;
 }
 
 export interface TreeAction {
@@ -75,7 +95,7 @@ export interface TreeAction {
   title: string;
   date: string;
   volunteers: number;
-  status: 'planning' | 'ongoing' | 'completed';
+  status: string;
 }
 
 export interface ForumEvent {
@@ -88,5 +108,24 @@ export interface ForumEvent {
     prize: string;
     description: string;
     icon: string;
+  }[];
+}
+
+export interface ContestSubmission {
+  id: string;
+  fullName: string;
+  phone: string;
+  imageUrl: string;
+  likes: number;
+  timestamp: any;
+}
+
+export interface ContestConfig {
+  title: string;
+  description?: string;
+  prizes: {
+    rank: string;
+    amount: string;
+    bonus: string;
   }[];
 }

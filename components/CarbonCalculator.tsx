@@ -1,205 +1,154 @@
 
 import React, { useState } from 'react';
-import { calculateCarbonFootprint } from '../services/geminiService';
-import { Calculator, Loader2, RefreshCcw, Info, ArrowRight, Zap, Droplets, Trash2, Car, Utensils, Sparkles, ShieldCheck, Leaf, CheckCircle2 } from 'lucide-react';
+import { GoogleGenAI } from '@google/genai';
+import { Calculator, Loader2, Sparkles, ArrowRight, Car, Zap, Trash2, Leaf, Utensils, Home, ShoppingBag, Droplets } from 'lucide-react';
 
 const CarbonCalculator: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [step, setStep] = useState(1);
-
   const [formData, setFormData] = useState({
     transport: 'jamoat',
-    diet: 'balanced',
     energy: 'standard',
+    diet: 'mixed',
+    housing: 'apartment',
     waste: 'none',
-    water: 'average'
+    shopping: 'average',
+    water: 'careful'
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const analysis = await calculateCarbonFootprint(formData);
-      setResult(analysis || "Tahlil natijasini olib bo'lmadi.");
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const prompt = `Siz dunyo darajasidagi professional ekologiya ekspertisiz. 
+      Foydalanuvchi turmush tarzi haqida ma'lumotlar:
+      - Transport: ${formData.transport} (avtomobil, jamoat, velosiped, piyoda)
+      - Energiya: ${formData.energy} (standard tarmoq, quyosh paneli)
+      - Ratsion/Ovqatlanish: ${formData.diet} (go'shtli, aralash, vegetarian, vegan)
+      - Uy turi: ${formData.housing} (kvartira, hovli uy)
+      - Chiqindi nazorati: ${formData.waste} (saralamaydi, qisman, to'liq saralaydi)
+      - Xarid qilish odati: ${formData.shopping} (minimalist, o'rtacha, ko'p xarid qiladi)
+      - Suv iste'moli: ${formData.water} (isrof qiladi, ehtiyotkor, juda tejamkor)
+      
+      Vazifa: Ushbu ma'lumotlarni tahlil qiling va foydalanuvchiga shaxsiy Eko-Hisobot tayyorlang.
+      Javob quyidagi bo'limlardan iborat bo'lsin:
+      1. Ekologik baho (100 balldan necha ball berishingiz).
+      2. Ijobiy tomonlari: Uning qaysi odatlari tabiatga foydali.
+      3. Salbiy ta'sir: Qaysi odatlari eng ko'p zarar yetkazmoqda.
+      4. TOP-3 Shaxsiy maslahat: Aynan uning hayot tarzi uchun eng samarali 3 ta o'zgarish.
+      5. Kelajak uchun motivatsiya.
+      
+      Javobni o'zbek tilida, professional, chiroyli va qisqa (bullet points bilan) formatda bering.`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: prompt
+      });
+      setResult(response.text || "AI tahlil bera olmadi.");
     } catch (err) {
-      setResult("Xatolik yuz berdi. Internet ulanishini tekshiring.");
+      setResult("AI tahlil qilishda xatolik yuz berdi. Iltimos, qayta urinib ko'ring.");
     } finally {
       setLoading(false);
     }
   };
 
-  const nextStep = () => setStep(prev => Math.min(prev + 1, 3));
-  const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
+  const OptionButton = ({ value, label, current, icon: Icon, type }: any) => (
+    <button 
+      type="button" 
+      onClick={() => setFormData({...formData, [type]: value})} 
+      className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-2 group ${
+        current === value ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-lg' : 'border-slate-100 bg-white hover:border-emerald-200'
+      }`}
+    >
+      <Icon size={24} className={current === value ? 'text-emerald-600' : 'text-slate-400 group-hover:text-emerald-500'} />
+      <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
+    </button>
+  );
 
   return (
-    <div className="bg-white rounded-[64px] p-8 md:p-14 shadow-3xl border border-emerald-50 relative overflow-hidden group">
+    <div className="bg-white rounded-[64px] p-8 md:p-14 shadow-3xl border border-emerald-50 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full -mr-48 -mt-48 blur-[100px]" />
-      
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-emerald-600 rounded-2xl shadow-xl flex items-center justify-center rotate-3">
-              <Calculator className="text-white" size={28} />
-            </div>
+            <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center rotate-3 shadow-lg shadow-emerald-200"><Calculator className="text-white" size={28} /></div>
             <div>
-              <h3 className="text-3xl font-black text-slate-900 tracking-tighter italic">EKO <span className="text-emerald-500">Tahlil</span></h3>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 italic">Professional ekologik ekspertiza</p>
+              <h3 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">EKO <span className="text-emerald-500">Tahlil v2.0</span></h3>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Gemini AI Expert System</p>
             </div>
           </div>
-          {!result && (
-            <div className="flex gap-2">
-              {[1, 2, 3].map(i => (
-                <div key={i} className={`h-1.5 w-8 rounded-full transition-all duration-500 ${step >= i ? 'bg-emerald-500' : 'bg-slate-100'}`} />
-              ))}
-            </div>
-          )}
+          <div className="flex gap-1">
+            {[1, 2, 3].map(s => (
+              <div key={s} className={`h-1.5 w-6 rounded-full transition-all ${step >= s ? 'bg-emerald-500' : 'bg-slate-100'}`} />
+            ))}
+          </div>
         </div>
 
         {result ? (
-          <div className="animate-in fade-in zoom-in slide-in-from-bottom-8 duration-700">
-            <div className="bg-slate-50 border border-emerald-100 p-8 md:p-12 rounded-[48px] text-slate-800 mb-10 shadow-inner relative overflow-hidden">
-               <div className="flex items-center gap-3 text-emerald-600 font-black uppercase text-[12px] tracking-[0.4em] mb-8">
-                  <Sparkles size={18} className="animate-pulse" /> AI Tahlil Natijasi
+          <div className="animate-in fade-in zoom-in slide-in-from-bottom-8">
+            <div className="bg-slate-950 text-emerald-50 p-10 rounded-[48px] mb-10 shadow-3xl border border-white/5 relative overflow-hidden">
+               <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12"><Sparkles size={120} /></div>
+               <div className="flex items-center gap-3 text-emerald-400 font-black uppercase text-[12px] tracking-[0.4em] mb-8 animate-pulse">
+                 <Sparkles size={18} /> Shaxsiy Tahlil Natijasi
                </div>
-               
-               <div className="whitespace-pre-wrap leading-relaxed text-lg font-medium text-slate-700">
-                  {result}
-               </div>
-
-               <div className="mt-12 p-8 bg-white rounded-[40px] border border-emerald-100 shadow-sm flex items-start gap-6">
-                  <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 shrink-0">
-                    <ShieldCheck size={32} />
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-black text-slate-900 mb-2">Abbosdan Tavsiya</h4>
-                    <p className="text-slate-500 font-medium text-sm italic">"Bu tahlil sizga tabiat bilan uyg'un yashashda yordam beradi."</p>
-                  </div>
+               <div className="prose prose-invert max-w-none whitespace-pre-wrap leading-relaxed text-sm md:text-base font-medium text-slate-300 italic">
+                 {result}
                </div>
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button 
-                onClick={() => {setResult(null); setStep(1);}}
-                className="flex-grow py-6 bg-slate-100 text-slate-600 rounded-[28px] font-black text-sm uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-3"
-              >
-                <RefreshCcw size={18} /> Yangi Tahlil
-              </button>
-            </div>
+            <button onClick={() => {setResult(null); setStep(1);}} className="w-full py-6 bg-emerald-600 text-white rounded-[32px] font-black text-sm uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-2xl">Yangi Tahlil Boshlash</button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-10">
+          <form onSubmit={handleSubmit} className="space-y-8">
             {step === 1 && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
-                <div className="grid gap-8">
-                  <div className="group">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 ml-2">
-                      <Car size={14} /> Transport
-                    </label>
-                    <div className="grid grid-cols-2 gap-4">
-                      {['avtomobil', 'jamoat', 'velosiped', 'piyoda'].map((type) => (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => setFormData({...formData, transport: type})}
-                          className={`p-6 rounded-3xl border-2 transition-all font-black text-sm capitalize ${formData.transport === type ? 'border-emerald-500 bg-emerald-500 text-white shadow-xl' : 'border-slate-100 bg-white text-slate-400'}`}
-                        >
-                          {type}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="group">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 ml-2">
-                      <Utensils size={14} /> Ovqatlanish
-                    </label>
-                    <select 
-                      className="w-full px-8 py-6 bg-slate-50 border-2 border-transparent rounded-[32px] text-slate-900 font-black outline-none focus:border-emerald-500 transition-all"
-                      value={formData.diet}
-                      onChange={(e) => setFormData({...formData, diet: e.target.value})}
-                    >
-                      <option value="meat">Go'shtli</option>
-                      <option value="balanced">Muvozanatli</option>
-                      <option value="vegetarian">Vegetarian</option>
-                    </select>
+              <div className="space-y-8 animate-in slide-in-from-right-8">
+                <div className="space-y-4">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest block ml-2">Transport va Uy turi</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <OptionButton type="transport" value="avtomobil" label="Mashina" icon={Car} current={formData.transport} />
+                    <OptionButton type="transport" value="jamoat" label="Jamoat" icon={Users} current={formData.transport} />
+                    <OptionButton type="housing" value="apartment" label="Kvartira" icon={Home} current={formData.housing} />
+                    <OptionButton type="housing" value="house" label="Hovli uy" icon={Leaf} current={formData.housing} />
                   </div>
                 </div>
-                <button type="button" onClick={nextStep} className="w-full py-7 bg-slate-900 text-white rounded-[32px] font-black text-lg flex items-center justify-center gap-4 hover:bg-emerald-600 transition-all shadow-2xl">
-                  Keyingi Qadam <ArrowRight size={24} />
-                </button>
+                <button type="button" onClick={() => setStep(2)} className="w-full py-6 bg-slate-900 text-white rounded-[32px] font-black text-lg flex items-center justify-center gap-4 hover:bg-emerald-600 transition-all">Keyingi qadam <ArrowRight size={24} /></button>
               </div>
             )}
-
+            
             {step === 2 && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
-                <div className="grid gap-8">
-                  <div className="group">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 ml-2">
-                      <Zap size={14} /> Energiya
-                    </label>
-                    <div className="grid grid-cols-2 gap-4">
-                      {['standard', 'solar'].map((val) => (
-                        <button
-                          key={val}
-                          type="button"
-                          onClick={() => setFormData({...formData, energy: val})}
-                          className={`p-6 rounded-3xl border-2 transition-all font-black text-sm ${formData.energy === val ? 'border-emerald-500 bg-emerald-500 text-white shadow-xl' : 'border-slate-100 bg-white text-slate-400'}`}
-                        >
-                          {val === 'standard' ? 'Tarmoq' : 'Quyosh'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="group">
-                    <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 ml-2">
-                      <Droplets size={14} /> Suv Sarfi
-                    </label>
-                    <select 
-                      className="w-full px-8 py-6 bg-slate-50 border-2 border-transparent rounded-[32px] text-slate-900 font-black outline-none focus:border-emerald-500 transition-all"
-                      value={formData.water}
-                      onChange={(e) => setFormData({...formData, water: e.target.value})}
-                    >
-                      <option value="low">Tejamkor</option>
-                      <option value="average">O'rtacha</option>
-                      <option value="high">Ko'p</option>
-                    </select>
+              <div className="space-y-8 animate-in slide-in-from-right-8">
+                <div className="space-y-4">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest block ml-2">Ovqatlanish va Iste'mol</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <OptionButton type="diet" value="mixed" label="Aralash" icon={Utensils} current={formData.diet} />
+                    <OptionButton type="diet" value="vegan" label="Vegan" icon={Leaf} current={formData.diet} />
+                    <OptionButton type="shopping" value="minimalist" label="Minimalist" icon={ShoppingBag} current={formData.shopping} />
+                    <OptionButton type="shopping" value="heavy" label="Ko'p xarid" icon={ShoppingBag} current={formData.shopping} />
                   </div>
                 </div>
                 <div className="flex gap-4">
-                  <button type="button" onClick={prevStep} className="px-10 py-7 bg-slate-100 text-slate-600 rounded-[32px] font-black text-lg uppercase transition-all">Orqaga</button>
-                  <button type="button" onClick={nextStep} className="flex-grow py-7 bg-slate-900 text-white rounded-[32px] font-black text-lg flex items-center justify-center gap-4 hover:bg-emerald-600 transition-all shadow-2xl">Davom etish <ArrowRight size={24} /></button>
+                  <button type="button" onClick={() => setStep(1)} className="px-8 py-6 bg-slate-100 rounded-[32px] font-black uppercase text-xs">Orqaga</button>
+                  <button type="button" onClick={() => setStep(3)} className="flex-grow py-6 bg-slate-900 text-white rounded-[32px] font-black text-lg flex justify-center items-center gap-4">Davom etish <ArrowRight size={24} /></button>
                 </div>
               </div>
             )}
 
             {step === 3 && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
-                <div className="group">
-                  <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 ml-2">
-                    <Trash2 size={14} /> Chiqindi Saralash
-                  </label>
-                  <div className="grid gap-4">
-                    {['none', 'partial', 'full'].map((item) => (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => setFormData({...formData, waste: item})}
-                        className={`p-6 rounded-[32px] border-2 transition-all font-black text-left flex items-center justify-between ${formData.waste === item ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-100 bg-white text-slate-600'}`}
-                      >
-                        <span className="text-sm capitalize">{item === 'none' ? 'Saralamayman' : item === 'partial' ? 'Qisman' : 'To\'liq'}</span>
-                      </button>
-                    ))}
+              <div className="space-y-8 animate-in slide-in-from-right-8">
+                <div className="space-y-4">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest block ml-2">Resurslar va Chiqindi</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <OptionButton type="energy" value="standard" label="Standard" icon={Zap} current={formData.energy} />
+                    <OptionButton type="energy" value="solar" label="Quyosh" icon={Sparkles} current={formData.energy} />
+                    <OptionButton type="water" value="careful" label="Tejamkor" icon={Droplets} current={formData.water} />
+                    <OptionButton type="waste" value="full" label="Saralash" icon={Trash2} current={formData.waste} />
                   </div>
                 </div>
-
                 <div className="flex gap-4">
-                  <button type="button" onClick={prevStep} className="px-10 py-7 bg-slate-100 text-slate-600 rounded-[32px] font-black text-lg uppercase transition-all">Orqaga</button>
-                  <button 
-                    type="submit"
-                    disabled={loading}
-                    className="flex-grow py-7 bg-emerald-600 text-white rounded-[32px] font-black text-lg flex justify-center items-center gap-4 shadow-3xl shadow-emerald-100 disabled:opacity-50"
-                  >
-                    {loading ? <Loader2 className="animate-spin" size={24} /> : <>Tahlilni Yakunlash <Sparkles size={24} /></>}
+                  <button type="button" onClick={() => setStep(2)} className="px-8 py-6 bg-slate-100 rounded-[32px] font-black uppercase text-xs">Orqaga</button>
+                  <button type="submit" disabled={loading} className="flex-grow py-6 bg-emerald-600 text-white rounded-[32px] font-black text-lg flex justify-center items-center gap-4 shadow-2xl">
+                    {loading ? <Loader2 className="animate-spin" /> : <>Tahlilni olish <Sparkles size={24} /></>}
                   </button>
                 </div>
               </div>
@@ -210,5 +159,14 @@ const CarbonCalculator: React.FC = () => {
     </div>
   );
 };
+
+const Users = ({ size, className }: any) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
 
 export default CarbonCalculator;

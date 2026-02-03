@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
+import { db } from './firebase';
+import { collection, onSnapshot, query, doc, setDoc, deleteDoc, serverTimestamp, orderBy, limit } from 'firebase/firestore';
 import Sidebar from './components/Sidebar';
-import BottomNav from './components/BottomNav';
 import Home from './pages/Home';
-import EcoLife from './pages/EcoLife';
 import News from './pages/News';
 import Problems from './pages/Problems';
 import Quiz from './pages/Quiz';
@@ -11,189 +11,199 @@ import EcoInfo from './pages/EcoInfo';
 import NewsForum from './pages/NewsForum';
 import CommunityChat from './pages/CommunityChat';
 import Kids from './pages/Kids';
-import EcoMarket from './pages/EcoMarket';
-import EcoMap from './pages/EcoMap';
 import Support from './pages/Support';
 import AdminPanel from './pages/AdminPanel';
+import EcoMarket from './pages/EcoMarket';
+import Settings from './pages/Settings';
+import Profile from './pages/Profile';
 import AuthModal from './components/AuthModal';
-import { AppSection, User, EcoArticle } from './types';
-import { ECO_ARTICLES as INITIAL_ARTICLES } from './constants';
-import { Send, MessageCircle, X, Sparkles, Leaf } from 'lucide-react';
+import { AppSection, User, EcoArticle, GameItem } from './types';
+import { MessageCircle, Menu } from 'lucide-react';
+
+const SESSION_ID = Math.random().toString(36).substring(2, 15);
+
+// Aksent ranglar xaritasi
+const ACCENT_MAP: Record<string, string> = {
+  emerald: '#10b981',
+  blue: '#3b82f6',
+  indigo: '#6366f1',
+  amber: '#f59e0b',
+  rose: '#f43f5e'
+};
 
 const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<AppSection>(AppSection.HOME);
   const [user, setUser] = useState<User | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [onlineCount, setOnlineCount] = useState(542);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   
+  // Sozlamalar holati
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('eko27_dark_mode') === 'true');
+  const [accentColor, setAccentColor] = useState(() => localStorage.getItem('eko27_accent') || 'emerald');
+
+  // Ma'lumotlar
+  const [news, setNews] = useState<EcoArticle[]>([]);
+  const [library, setLibrary] = useState<EcoArticle[]>([]);
+  const [games, setGames] = useState<GameItem[]>([]);
+  const [onlineCount, setOnlineCount] = useState(30);
+
+  // 1. Bildirishnomalar uchun listener
   useEffect(() => {
-    const interval = setInterval(() => {
-      setOnlineCount(prev => prev + (Math.random() > 0.5 ? 1 : -1));
-    }, 5000);
-    return () => clearInterval(interval);
+    const marketQ = query(collection(db, "market_items"), orderBy("timestamp", "desc"), limit(1));
+    let initialLoad = true;
+
+    const unsubMarket = onSnapshot(marketQ, (snapshot) => {
+      if (initialLoad) {
+        initialLoad = false;
+        return;
+      }
+      if (!snapshot.empty && !snapshot.metadata.hasPendingWrites) {
+        const item = snapshot.docs[0].data();
+        if (Notification.permission === "granted") {
+          new Notification("EKO-BOZOR: Yangi e'lon!", {
+            body: `${item.name} - ${item.price} UZS`,
+            icon: item.image || "https://raw.githubusercontent.com/abdurazoqov606/Hyt/main/IMG_20260201_092843.png"
+          });
+        }
+      }
+    });
+
+    return () => unsubMarket();
   }, []);
 
-  const [news, setNews] = useState<EcoArticle[]>(INITIAL_ARTICLES);
-  const [siteConfig, setSiteConfig] = useState({
-    heroTitle: "EKO 27",
-    heroDesc: "Kelajakni bugun, 27-maktab o'quvchilari bilan birga quring. Har bir qadam tabiat uchun muhim."
-  });
-
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [chatMessage, setChatMessage] = useState('');
-  const [chatHistory, setChatHistory] = useState<{role: 'user' | 'bot', text: string}[]>([]);
-  const [messageCount, setMessageCount] = useState(0);
-
-  const handleSendMessage = () => {
-    if (!chatMessage.trim()) return;
-    
-    const userText = chatMessage;
-    setChatHistory(prev => [...prev, { role: 'user', text: userText }]);
-    setChatMessage('');
-
-    if (messageCount === 0) {
-      // 1-xabar: Loyiha va muallif haqida
-      setTimeout(() => {
-        setChatHistory(prev => [...prev, { 
-          role: 'bot', 
-          text: "Salom! Men EKO 27 loyihasining yordamchisiman. Meni Abdurazoqov Abbos yaratgan. Sizga qanday yordam bera olaman?" 
-        }]);
-        setMessageCount(1);
-      }, 600);
+  // 2. Tungi rejim va Aksent rangni qo'llash
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
     } else {
-      // 2-xabar: ChatGPT redirect
-      setTimeout(() => {
-        setChatHistory(prev => [...prev, { 
-          role: 'bot', 
-          text: "Batafsil ma'lumot olishingiz uchun sizni ChatGPT xizmatiga yo'naltirmoqdaman..." 
-        }]);
-        setTimeout(() => {
-          window.open('https://chatgpt.com', '_blank');
-        }, 1200);
-      }, 600);
+      document.documentElement.classList.remove('dark');
     }
+    localStorage.setItem('eko27_dark_mode', darkMode.toString());
+  }, [darkMode]);
+
+  useEffect(() => {
+    const colorCode = ACCENT_MAP[accentColor];
+    document.documentElement.style.setProperty('--accent-primary', colorCode);
+    localStorage.setItem('eko27_accent', accentColor);
+  }, [accentColor]);
+
+  // 3. Foydalanuvchi va Online holat
+  useEffect(() => {
+    const presenceRef = doc(db, "presence", SESSION_ID);
+    const updatePresence = async () => {
+      try { await setDoc(presenceRef, { lastSeen: serverTimestamp(), active: true }); } catch (e) {}
+    };
+    const interval = setInterval(updatePresence, 20000);
+    updatePresence();
+
+    const unsubPresence = onSnapshot(collection(db, "presence"), (snapshot) => {
+      const now = Date.now();
+      const activeUsers = snapshot.docs.filter(doc => {
+        const data = doc.data();
+        if (!data.lastSeen) return false;
+        const lastSeenTime = data.lastSeen.toMillis ? data.lastSeen.toMillis() : now;
+        return (now - lastSeenTime) < 40000;
+      });
+      setOnlineCount(activeUsers.length + 30);
+    });
+
+    onSnapshot(query(collection(db, "news"), orderBy("timestamp", "desc")), (s) => setNews(s.docs.map(d => ({ id: d.id, ...d.data() } as EcoArticle))));
+    onSnapshot(query(collection(db, "library"), orderBy("timestamp", "desc")), (s) => setLibrary(s.docs.map(d => ({ id: d.id, ...d.data() } as EcoArticle))));
+    onSnapshot(query(collection(db, "games"), orderBy("timestamp", "desc")), (s) => setGames(s.docs.map(d => ({ id: d.id, ...d.data() } as GameItem))));
+
+    return () => {
+      clearInterval(interval);
+      unsubPresence();
+      deleteDoc(presenceRef);
+    };
+  }, []);
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem('eko27_user');
+    if (savedUser) setUser(JSON.parse(savedUser));
+  }, []);
+
+  const handleLoginSuccess = (userData: User) => {
+    setUser(userData);
+    localStorage.setItem('eko27_user', JSON.stringify(userData));
+    setShowAuthModal(false);
   };
 
-  const addNews = (article: EcoArticle) => setNews([article, ...news]);
-  const deleteNews = (id: string) => setNews(news.filter(n => n.id !== id));
+  const handleProfileUpdate = (updatedUser: User) => {
+    setUser(updatedUser);
+    localStorage.setItem('eko27_user', JSON.stringify(updatedUser));
+  };
 
   const renderSection = () => {
     switch (activeSection) {
       case AppSection.HOME: return <Home onNavigate={setActiveSection} />;
-      case AppSection.ECO_LIFE: return <EcoLife />;
+      case AppSection.MARKET: return <EcoMarket user={user} onLogin={() => setShowAuthModal(true)} />;
       case AppSection.NEWS: return <News articles={news} />;
       case AppSection.PROBLEMS: return <Problems />;
       case AppSection.QUIZ: return <Quiz />;
-      case AppSection.NEWS_FORUM: return <NewsForum articles={news} />;
-      case AppSection.COMMUNITY_CHAT: return <CommunityChat user={user} onLoginRequest={() => setShowAuthModal(true)} />;
-      case AppSection.ADMIN_PANEL: 
-      case AppSection.PROFILE:
-        return (
-          <AdminPanel 
-            isAuthenticated={isAdminAuthenticated} 
-            onAuthenticate={() => setIsAdminAuthenticated(true)}
-            news={news}
-            onAddNews={addNews}
-            onDeleteNews={deleteNews}
-            siteConfig={siteConfig}
-            onUpdateConfig={setSiteConfig}
-          />
+      case AppSection.NEWS_FORUM: return <NewsForum />;
+      case AppSection.PROFILE: return <Profile user={user} onLogout={() => { setUser(null); localStorage.removeItem('eko27_user'); }} onNavigate={setActiveSection} onUpdate={handleProfileUpdate} />;
+      case AppSection.COMMUNITY_CHAT: 
+        if (!user) return (
+          <div className="h-[70vh] flex flex-col items-center justify-center p-8 text-center bg-white dark:bg-slate-900 rounded-[60px] shadow-2xl transition-colors">
+            <div className="w-24 h-24 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-full flex items-center justify-center mb-8 animate-bounce"><MessageCircle size={48} /></div>
+            <h2 className="text-4xl font-black text-slate-900 dark:text-white mb-4">Muloqotga Qo'shiling</h2>
+            <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-sm">Eko-hamjamiyat bilan fikr almashish uchun profil yarating.</p>
+            <button onClick={() => setShowAuthModal(true)} className="px-16 py-6 bg-emerald-600 text-white rounded-[32px] font-black text-xl shadow-2xl hover:scale-105 transition-all">Kirish</button>
+          </div>
         );
-      case AppSection.ECO_INFO: return <EcoInfo articles={news} />;
-      case AppSection.GAMES: return <Kids />;
-      case AppSection.MARKET: return <EcoMarket user={user} />;
-      case AppSection.MAP: return <EcoMap />;
+        return <CommunityChat user={user} />;
+      case AppSection.ADMIN_PANEL: return <AdminPanel isAuthenticated={isAdminAuthenticated} onAuthenticate={() => setIsAdminAuthenticated(true)} />;
+      case AppSection.ECO_INFO: return <EcoInfo articles={library} />;
+      case AppSection.GAMES: return <Kids games={games} />;
       case AppSection.SUPPORT: return <Support />;
+      case AppSection.SETTINGS: return <Settings darkMode={darkMode} setDarkMode={setDarkMode} accentColor={accentColor} setAccentColor={setAccentColor} user={user} onUpdateProfile={handleProfileUpdate} onLogin={() => setShowAuthModal(true)} />;
       default: return <Home onNavigate={setActiveSection} />;
     }
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-['Plus_Jakarta_Sans']">
-      <Sidebar 
-        activeSection={activeSection} 
-        onNavigate={setActiveSection} 
-        user={user} 
-        onLogin={() => setShowAuthModal(true)}
-        onlineCount={onlineCount}
-      />
+    <div className={`flex h-screen overflow-hidden font-['Plus_Jakarta_Sans'] transition-colors ${darkMode ? 'bg-slate-950' : 'bg-slate-50'}`}>
+      {/* Dynamic Accent Style Injection */}
+      <style>{`
+        :root { --accent-primary: ${ACCENT_MAP[accentColor]}; }
+        .bg-emerald-600, .bg-emerald-500 { background-color: var(--accent-primary) !important; }
+        .text-emerald-600, .text-emerald-500 { color: var(--accent-primary) !important; }
+        .border-emerald-600, .border-emerald-500 { border-color: var(--accent-primary) !important; }
+        .shadow-emerald-600\/20 { --tw-shadow-color: var(--accent-primary); }
+      `}</style>
+
+      <button 
+        onClick={() => setIsSidebarOpen(true)}
+        className="fixed top-8 left-8 z-[60] p-4 bg-emerald-600 text-white rounded-2xl shadow-2xl hover:scale-110 active:scale-95 transition-all flex items-center justify-center border-4 border-white/20 dark:border-slate-800/50"
+      >
+        <Menu size={24} />
+      </button>
+
+      {isSidebarOpen && (
+        <div className="fixed inset-0 z-[100] flex">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in" onClick={() => setIsSidebarOpen(false)} />
+          <div className="relative w-[320px] h-full sidebar-animate shadow-[20px_0_60px_rgba(0,0,0,0.5)]">
+             <Sidebar 
+                activeSection={activeSection} 
+                onNavigate={(s) => { setActiveSection(s); setIsSidebarOpen(false); }} 
+                user={user} 
+                onLogin={() => setShowAuthModal(true)}
+                onlineCount={onlineCount}
+                onClose={() => setIsSidebarOpen(false)}
+             />
+          </div>
+        </div>
+      )}
       
-      <main className="flex-grow overflow-y-auto relative no-scrollbar pb-24 lg:pb-0">
-        <div className="p-4 md:p-8">
+      <main className="flex-grow overflow-y-auto no-scrollbar relative">
+        <div className="p-8 lg:p-16">
           {renderSection()}
         </div>
       </main>
 
-      <BottomNav activeSection={activeSection} onNavigate={setActiveSection} />
-
-      {/* Faqat matnli chat */}
-      <div className="fixed bottom-24 lg:bottom-8 right-6 lg:right-8 z-[100] flex flex-col gap-4">
-        {isChatOpen && (
-          <div className="bg-white rounded-[40px] shadow-2xl border border-emerald-100 w-[380px] max-w-[90vw] mb-4 animate-in slide-in-from-bottom-5 flex flex-col h-[500px] overflow-hidden">
-             <div className="p-6 bg-emerald-600 text-white flex justify-between items-center relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 blur-2xl" />
-                <div className="flex items-center gap-3 relative z-10">
-                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
-                    <Sparkles size={20} />
-                  </div>
-                  <div>
-                    <span className="font-black text-[10px] block opacity-70 uppercase tracking-widest">A. Abbos tomonidan</span>
-                    <span className="font-black text-sm uppercase tracking-widest">Eko-Yordamchi</span>
-                  </div>
-                </div>
-                <button onClick={() => setIsChatOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-all relative z-10">
-                  <X size={20} />
-                </button>
-             </div>
-             <div className="flex-grow overflow-y-auto p-6 space-y-4 bg-slate-50 no-scrollbar">
-                {chatHistory.length === 0 && (
-                   <div className="text-center py-10 opacity-50">
-                      <Leaf className="mx-auto mb-4 text-emerald-500" size={40} />
-                      <p className="text-xs font-bold uppercase tracking-widest">Savolingizni yozing</p>
-                   </div>
-                )}
-                {chatHistory.map((chat, i) => (
-                  <div key={i} className={`flex ${chat.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] p-4 rounded-3xl text-xs font-medium shadow-sm leading-relaxed ${
-                      chat.role === 'user' 
-                        ? 'bg-emerald-600 text-white rounded-br-none' 
-                        : 'bg-white border border-slate-100 text-slate-800 rounded-bl-none'
-                    }`}>
-                      {chat.text}
-                    </div>
-                  </div>
-                ))}
-             </div>
-             <div className="p-4 bg-white border-t border-slate-50 flex gap-2">
-                <input 
-                  value={chatMessage} 
-                  onChange={e => setChatMessage(e.target.value)} 
-                  onKeyDown={e => e.key === 'Enter' && handleSendMessage()} 
-                  className="flex-grow bg-slate-50 rounded-2xl px-5 py-4 text-xs outline-none font-bold focus:bg-white focus:ring-2 focus:ring-emerald-500/10 transition-all" 
-                  placeholder="Xabar yozing..." 
-                />
-                <button 
-                  onClick={handleSendMessage} 
-                  className="p-4 bg-emerald-600 text-white rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg"
-                >
-                  <Send size={18} />
-                </button>
-             </div>
-          </div>
-        )}
-
-        <button 
-          onClick={() => setIsChatOpen(!isChatOpen)} 
-          className="w-16 h-16 bg-emerald-600 text-white rounded-[24px] shadow-3xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group"
-        >
-          {isChatOpen ? <X size={28} /> : <MessageCircle size={28} className="group-hover:rotate-12 transition-transform" />}
-        </button>
-      </div>
-
-      {showAuthModal && (
-        <AuthModal onClose={() => setShowAuthModal(false)} onLoginSuccess={(u) => {setUser(u); setShowAuthModal(false);}} />
-      )}
+      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} onLoginSuccess={handleLoginSuccess} />}
     </div>
   );
 };
