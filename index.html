@@ -3,7 +3,7 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EKO 27 - Abbos Abdurazoqov</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -12,6 +12,8 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             scroll-behavior: smooth;
             background-color: #f8fafc;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -24,13 +26,14 @@
           to { transform: rotate(360deg); }
         }
         .animate-spin-slow {
-          animation: spinSlow 120s linear infinite;
+          animation: spinSlow 20s linear infinite;
         }
 
-        /* Custom glass effect */
-        .glass-sidebar {
-          background: rgba(15, 23, 42, 0.95);
-          backdrop-filter: blur(20px);
+        /* Responsive text tweaks */
+        @media (max-width: 640px) {
+          .mobile-text-sm { font-size: 0.75rem; }
+          .mobile-p-tight { padding: 1rem; }
+          .rounded-mobile-xl { border-radius: 1.5rem !important; }
         }
     </style>
 <script type="importmap">
@@ -53,7 +56,7 @@
 }
 </script>
 </head>
-<body class="bg-slate-50 text-slate-900 overflow-x-hidden">
+<body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>

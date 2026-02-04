@@ -8,6 +8,7 @@ export enum AppSection {
   QUIZ = 'quiz',
   ECO_INFO = 'eco-info',
   RED_BOOK = 'red-book',
+  RESERVES = 'reserves',
   COMMUNITY_CHAT = 'community-chat',
   PROFILE = 'profile',
   GAMES = 'games',
@@ -70,6 +71,15 @@ export interface EcoArticle {
   category: string;
   image: string;
   link?: string;
+}
+
+// Added EcoVideo interface to fix the import error in VideoGuides.tsx
+export interface EcoVideo {
+  id: string;
+  title: string;
+  description: string;
+  videoUrl: string;
+  timestamp: any;
 }
 
 export interface NewsComment {

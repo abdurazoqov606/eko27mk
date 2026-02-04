@@ -9,6 +9,7 @@ import Problems from './pages/Problems';
 import Quiz from './pages/Quiz';
 import EcoInfo from './pages/EcoInfo';
 import RedBook from './pages/RedBook';
+import NatureReserves from './pages/NatureReserves';
 import NewsForum from './pages/NewsForum';
 import CommunityChat from './pages/CommunityChat';
 import Kids from './pages/Kids';
@@ -154,21 +155,23 @@ const App: React.FC = () => {
       case AppSection.NEWS: return <News articles={news} user={user} />;
       case AppSection.PROBLEMS: return <Problems />;
       case AppSection.QUIZ: return <Quiz />;
+      /* Fixed: Removed AppSection.NEWS_FOR_FORUM which was causing a property missing error */
       case AppSection.NEWS_FORUM: return <NewsForum user={user} onLogin={() => setShowAuthModal(true)} />;
       case AppSection.PROFILE: return <Profile user={user} onLogout={() => { setUser(null); localStorage.removeItem('eko27_user'); }} onNavigate={setActiveSection} onUpdate={handleProfileUpdate} />;
       case AppSection.COMMUNITY_CHAT: 
         if (!user) return (
-          <div className="h-[70vh] flex flex-col items-center justify-center p-8 text-center bg-white dark:bg-slate-900 rounded-[60px] shadow-2xl transition-colors">
-            <div className="w-24 h-24 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-full flex items-center justify-center mb-8 animate-bounce"><MessageCircle size={48} /></div>
-            <h2 className="text-4xl font-black text-slate-900 dark:text-white mb-4">Muloqotga Qo'shiling</h2>
-            <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-sm">Eko-hamjamiyat bilan fikr almashish uchun profil yarating.</p>
-            <button onClick={() => setShowAuthModal(true)} className="px-16 py-6 bg-emerald-600 text-white rounded-[32px] font-black text-xl shadow-2xl hover:scale-105 transition-all">Kirish</button>
+          <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl transition-colors">
+            <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-full flex items-center justify-center mb-6 animate-bounce"><MessageCircle size={40} /></div>
+            <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4">Muloqotga Qo'shiling</h2>
+            <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-sm text-sm">Eko-hamjamiyat bilan fikr almashish uchun profil yarating.</p>
+            <button onClick={() => setShowAuthModal(true)} className="px-10 py-4 bg-emerald-600 text-white rounded-[24px] font-black text-lg shadow-xl hover:scale-105 transition-all">Kirish</button>
           </div>
         );
         return <CommunityChat user={user} />;
       case AppSection.ADMIN_PANEL: return <AdminPanel isAuthenticated={isAdminAuthenticated} onAuthenticate={() => setIsAdminAuthenticated(true)} />;
       case AppSection.ECO_INFO: return <EcoInfo articles={library} />;
       case AppSection.RED_BOOK: return <RedBook />;
+      case AppSection.RESERVES: return <NatureReserves />;
       case AppSection.GAMES: return <Kids games={games} />;
       case AppSection.SUPPORT: return <Support />;
       case AppSection.SETTINGS: return <Settings darkMode={darkMode} setDarkMode={setDarkMode} accentColor={accentColor} setAccentColor={setAccentColor} user={user} onUpdateProfile={handleProfileUpdate} onLogin={() => setShowAuthModal(true)} />;
@@ -188,15 +191,15 @@ const App: React.FC = () => {
 
       <button 
         onClick={() => setIsSidebarOpen(true)}
-        className="fixed top-8 left-8 z-[60] p-4 bg-emerald-600 text-white rounded-2xl shadow-2xl hover:scale-110 active:scale-95 transition-all flex items-center justify-center border-4 border-white/20 dark:border-slate-800/50"
+        className="fixed top-4 left-4 z-[60] p-3.5 bg-emerald-600 text-white rounded-xl shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center border-2 border-white/20 dark:border-slate-800/50"
       >
-        <Menu size={24} />
+        <Menu size={20} />
       </button>
 
       {isSidebarOpen && (
         <div className="fixed inset-0 z-[100] flex">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in" onClick={() => setIsSidebarOpen(false)} />
-          <div className="relative w-[320px] h-full sidebar-animate shadow-[20px_0_60px_rgba(0,0,0,0.5)]">
+          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm animate-in fade-in" onClick={() => setIsSidebarOpen(false)} />
+          <div className="relative w-[280px] h-full sidebar-animate shadow-[20px_0_60px_rgba(0,0,0,0.5)]">
              <Sidebar 
                 activeSection={activeSection} 
                 onNavigate={(s) => { setActiveSection(s); setIsSidebarOpen(false); }} 
@@ -210,7 +213,7 @@ const App: React.FC = () => {
       )}
       
       <main className="flex-grow overflow-y-auto no-scrollbar relative">
-        <div className="p-8 lg:p-16">
+        <div className="p-4 md:p-8 lg:p-16">
           {renderSection()}
         </div>
       </main>
