@@ -10,6 +10,7 @@ import Quiz from './pages/Quiz';
 import EcoInfo from './pages/EcoInfo';
 import RedBook from './pages/RedBook';
 import NatureReserves from './pages/NatureReserves';
+import VideoGuides from './pages/VideoGuides';
 import NewsForum from './pages/NewsForum';
 import CommunityChat from './pages/CommunityChat';
 import Kids from './pages/Kids';
@@ -20,7 +21,7 @@ import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import AuthModal from './components/AuthModal';
 import { AppSection, User, EcoArticle, GameItem } from './types';
-import { MessageCircle, Menu } from 'lucide-react';
+import { MessageCircle, Menu, ShieldCheck } from 'lucide-react';
 
 const SESSION_ID = Math.random().toString(36).substring(2, 15);
 
@@ -61,6 +62,27 @@ const App: React.FC = () => {
   const [library, setLibrary] = useState<EcoArticle[]>([]);
   const [games, setGames] = useState<GameItem[]>([]);
   const [onlineCount, setOnlineCount] = useState(30);
+
+  // Admin profilini boshqarish (ARES)
+  useEffect(() => {
+    if (isAdminAuthenticated) {
+      const aresUser: User = {
+        id: 'admin_ares_27',
+        name: 'ARES',
+        email: 'admin@eko27.uz',
+        avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Ares&backgroundColor=b6e3f4,c0aede,d1d4f9',
+        points: 999999,
+        balance: 999999,
+        rank: 'ADMIN / OWNER',
+        level: 99,
+        xp: 0,
+        maxXp: 1000,
+        achievements: [{ id: '1', name: 'Loyiha Muallifi', icon: '👑', date: '2024-01-01' }],
+        joinedDate: '2024-01-01'
+      };
+      setUser(aresUser);
+    }
+  }, [isAdminAuthenticated]);
 
   useEffect(() => {
     const marketQ = query(collection(db, "market_items"), orderBy("timestamp", "desc"), limit(1));
@@ -132,10 +154,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const savedUser = localStorage.getItem('eko27_user');
-    if (savedUser) {
+    if (savedUser && !isAdminAuthenticated) {
       try { setUser(JSON.parse(savedUser)); } catch (e) { localStorage.removeItem('eko27_user'); }
     }
-  }, []);
+  }, [isAdminAuthenticated]);
 
   const handleLoginSuccess = (userData: User) => {
     setUser(userData);
@@ -155,9 +177,8 @@ const App: React.FC = () => {
       case AppSection.NEWS: return <News articles={news} user={user} />;
       case AppSection.PROBLEMS: return <Problems />;
       case AppSection.QUIZ: return <Quiz />;
-      /* Fixed: Removed AppSection.NEWS_FOR_FORUM which was causing a property missing error */
       case AppSection.NEWS_FORUM: return <NewsForum user={user} onLogin={() => setShowAuthModal(true)} />;
-      case AppSection.PROFILE: return <Profile user={user} onLogout={() => { setUser(null); localStorage.removeItem('eko27_user'); }} onNavigate={setActiveSection} onUpdate={handleProfileUpdate} />;
+      case AppSection.PROFILE: return <Profile user={user} onLogout={() => { setUser(null); localStorage.removeItem('eko27_user'); setIsAdminAuthenticated(false); }} onNavigate={setActiveSection} onUpdate={handleProfileUpdate} />;
       case AppSection.COMMUNITY_CHAT: 
         if (!user) return (
           <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl transition-colors">
@@ -172,6 +193,7 @@ const App: React.FC = () => {
       case AppSection.ECO_INFO: return <EcoInfo articles={library} />;
       case AppSection.RED_BOOK: return <RedBook />;
       case AppSection.RESERVES: return <NatureReserves />;
+      case AppSection.VIDEO_GUIDES: return <VideoGuides />;
       case AppSection.GAMES: return <Kids games={games} />;
       case AppSection.SUPPORT: return <Support />;
       case AppSection.SETTINGS: return <Settings darkMode={darkMode} setDarkMode={setDarkMode} accentColor={accentColor} setAccentColor={setAccentColor} user={user} onUpdateProfile={handleProfileUpdate} onLogin={() => setShowAuthModal(true)} />;
@@ -187,6 +209,18 @@ const App: React.FC = () => {
         .text-emerald-600, .text-emerald-500 { color: var(--accent-primary) !important; }
         .border-emerald-600, .border-emerald-500 { border-color: var(--accent-primary) !important; }
         .shadow-emerald-600\/20 { --tw-shadow-color: var(--accent-primary); }
+        
+        /* ARES Premium Message Glow */
+        @keyframes aresGlow {
+          0% { box-shadow: 0 0 5px #10b981, 0 0 10px #10b981; }
+          50% { box-shadow: 0 0 20px #10b981, 0 0 30px #f59e0b; }
+          100% { box-shadow: 0 0 5px #10b981, 0 0 10px #10b981; }
+        }
+        .ares-message {
+          animation: aresGlow 3s infinite;
+          background: linear-gradient(135deg, #064e3b 0%, #022c22 100%) !important;
+          border: 2px solid #10b981 !important;
+        }
       `}</style>
 
       <button 

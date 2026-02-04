@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AppSection, User } from '../types';
 import { Award, Trophy, LogOut, ShieldCheck, Star, Mail, Wallet, TrendingUp, Calendar, Zap, User as UserIcon, CheckCircle2, Clock, ArrowRight, Settings as SettingsIcon, Camera, HelpCircle, Sparkles, Edit3 } from 'lucide-react';
@@ -119,7 +118,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout, onNavigate, onUpdate 
                  <Trophy size={20} className="text-amber-500" /> Kolleksiya
               </h4>
               <div className="grid grid-cols-4 gap-4">
-                 {user.achievements.map((ach) => (
+                 {(user.achievements || []).map((ach) => (
                    <div key={ach.id} className="aspect-square bg-slate-50 dark:bg-white/5 rounded-2xl flex items-center justify-center text-2xl shadow-inner hover:scale-110 transition-transform cursor-pointer border border-transparent hover:border-emerald-200" title={`${ach.name} - ${ach.date}`}>
                      {ach.icon}
                    </div>

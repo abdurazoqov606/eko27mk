@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { AppSection, User } from '../types';
-import { Home, Trophy, MessageSquare, BookOpen, AlertCircle, Gamepad2, Newspaper, HelpCircle, ShieldAlert, X, Globe, ShoppingBag, Settings, Book, MapPin } from 'lucide-react';
+import { Home, Trophy, MessageSquare, BookOpen, AlertCircle, Gamepad2, Newspaper, HelpCircle, ShieldAlert, X, Globe, ShoppingBag, Settings, Book, MapPin, Video } from 'lucide-react';
 
 interface SidebarProps {
   activeSection: AppSection;
@@ -21,6 +21,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, onNavigate, user, onLo
     { id: AppSection.NEWS_FORUM, label: 'Forum & Tanlov', icon: <Trophy size={18} /> },
     { id: AppSection.COMMUNITY_CHAT, label: 'Eko-Chat', icon: <MessageSquare size={18} /> },
     { id: AppSection.NEWS, label: 'Yangiliklar', icon: <Newspaper size={18} /> },
+    { id: AppSection.VIDEO_GUIDES, label: 'Video Qo\'llanma', icon: <Video size={18} /> },
     { id: AppSection.GAMES, label: 'O\'yinlar', icon: <Gamepad2 size={18} /> },
     { id: AppSection.ECO_INFO, label: 'Kutubxona', icon: <BookOpen size={18} /> },
     { id: AppSection.RED_BOOK, label: 'Qizil Kitob', icon: <Book size={18} /> },
