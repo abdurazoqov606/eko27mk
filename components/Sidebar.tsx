@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { AppSection, User } from '../types';
-import { Home, Trophy, MessageSquare, BookOpen, AlertCircle, Gamepad2, Newspaper, HelpCircle, ShieldAlert, X, Globe, ShoppingBag, Settings } from 'lucide-react';
+import { Home, Trophy, MessageSquare, BookOpen, AlertCircle, Gamepad2, Newspaper, HelpCircle, ShieldAlert, X, Globe, ShoppingBag, Settings, Book } from 'lucide-react';
 
 interface SidebarProps {
   activeSection: AppSection;
@@ -23,6 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, onNavigate, user, onLo
     { id: AppSection.NEWS, label: 'Yangiliklar', icon: <Newspaper size={22} /> },
     { id: AppSection.GAMES, label: 'O\'yinlar', icon: <Gamepad2 size={22} /> },
     { id: AppSection.ECO_INFO, label: 'Kutubxona', icon: <BookOpen size={22} /> },
+    { id: AppSection.RED_BOOK, label: 'Qizil Kitob', icon: <Book size={22} /> },
     { id: AppSection.PROBLEMS, label: 'Muammolar', icon: <AlertCircle size={22} /> },
     { id: AppSection.SUPPORT, label: 'Yordam', icon: <HelpCircle size={22} /> },
     { id: AppSection.SETTINGS, label: 'Sozlamalar', icon: <Settings size={22} /> },

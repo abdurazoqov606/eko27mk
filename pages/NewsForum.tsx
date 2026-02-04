@@ -2,13 +2,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
 import { collection, onSnapshot, query, orderBy, updateDoc, doc, serverTimestamp, increment, addDoc } from 'firebase/firestore';
-import { ContestSubmission, ContestConfig } from '../types';
+import { ContestSubmission, ContestConfig, User } from '../types';
 import { 
   Trophy, Rocket, Award, Camera, X, Heart, 
-  Search, Phone, User, Send, Loader2, Sparkles, Medal, ShieldAlert 
+  Search, Phone, User as UserIcon, Send, Loader2, Sparkles, Medal, ShieldAlert 
 } from 'lucide-react';
 
-const NewsForum: React.FC = () => {
+interface NewsForumProps {
+  user: User | null;
+  onLogin: () => void;
+}
+
+const NewsForum: React.FC<NewsForumProps> = ({ user, onLogin }) => {
   const [submissions, setSubmissions] = useState<ContestSubmission[]>([]);
   const [config, setConfig] = useState<ContestConfig>({
     title: '27',
@@ -44,6 +49,12 @@ const NewsForum: React.FC = () => {
   }, []);
 
   const handleLike = async (id: string) => {
+    // Aytilganidek: Ovoz berish uchun profil so'raladi
+    if (!user) {
+      onLogin();
+      return;
+    }
+
     const currentLikes = JSON.parse(localStorage.getItem('eko27_voted_ids') || '[]');
     if (currentLikes.includes(id) || likedPosts.includes(id)) {
       alert("Siz ushbu ishtirokchiga allaqachon ovoz bergansiz!");
@@ -64,7 +75,7 @@ const NewsForum: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 800 * 1024) { alert("Rasm hajmi katta!"); return; }
+      if (file.size > 800 * 1024) { alert("Rasm hajmi juda katta! 800KB dan kichik rasm yuklang."); return; }
       const reader = new FileReader();
       reader.onload = (event) => setPreviewImage(event.target?.result as string);
       reader.readAsDataURL(file);
@@ -73,6 +84,7 @@ const NewsForum: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) { onLogin(); return; }
     if (!previewImage || isSubmitting) return;
     
     const alreadySubmitted = localStorage.getItem('eko27_contest_submitted');
@@ -94,8 +106,8 @@ const NewsForum: React.FC = () => {
       setShowJoinModal(false);
       setFormData({ fullName: '', phone: '' });
       setPreviewImage(null);
-      alert("Arizangiz qabul qilindi!");
-    } catch (err) { alert("Xatolik!"); }
+      alert("Arizangiz qabul qilindi! Omad tilaymiz.");
+    } catch (err) { alert("Xatolik yuz berdi. Qayta urinib ko'ring."); }
     setIsSubmitting(false);
   };
 
@@ -137,9 +149,12 @@ const NewsForum: React.FC = () => {
       <div className="flex flex-col md:flex-row gap-6 mb-12 items-center justify-between">
         <div className="relative w-full md:max-w-md">
           <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-          <input type="text" placeholder="Qidiruv..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-16 pr-8 py-5 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-white/5 shadow-sm font-bold outline-none dark:text-white" />
+          <input type="text" placeholder="Ishtirokchilarni qidirish..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-16 pr-8 py-5 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-white/5 shadow-sm font-bold outline-none dark:text-white" />
         </div>
-        <button onClick={() => setShowJoinModal(true)} className="w-full md:w-auto px-12 py-5 bg-emerald-600 text-white rounded-[32px] font-black text-lg shadow-3xl flex items-center justify-center gap-3 active:scale-95">
+        <button 
+          onClick={() => user ? setShowJoinModal(true) : onLogin()} 
+          className="w-full md:w-auto px-12 py-5 bg-emerald-600 text-white rounded-[32px] font-black text-lg shadow-3xl flex items-center justify-center gap-3 active:scale-95 transition-all"
+        >
           Ishtirok etish <Camera size={24} />
         </button>
       </div>
@@ -164,9 +179,8 @@ const NewsForum: React.FC = () => {
                   </div>
                   <button 
                     onClick={() => handleLike(sub.id)}
-                    disabled={hasVoted}
                     className={`w-16 h-16 rounded-[24px] flex items-center justify-center transition-all ${
-                      hasVoted ? 'bg-slate-200 text-slate-400' : 'bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white'
+                      hasVoted ? 'bg-rose-500 text-white shadow-lg' : 'bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white'
                     }`}
                   >
                     <Heart size={32} fill={hasVoted ? "currentColor" : "none"} />
@@ -183,7 +197,7 @@ const NewsForum: React.FC = () => {
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" onClick={() => setShowJoinModal(false)} />
           <div className="relative bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[64px] shadow-3xl p-10 md:p-14 border-t-[12px] border-emerald-600">
             <div className="flex justify-between items-center mb-10">
-              <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter italic uppercase">Musobaqa Arizasi</h3>
+              <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter italic uppercase">Ishtirokchi Arizasi</h3>
               <button onClick={() => setShowJoinModal(false)} className="p-3 bg-slate-100 dark:bg-white/10 rounded-full dark:text-white"><X size={24} /></button>
             </div>
             
@@ -191,20 +205,20 @@ const NewsForum: React.FC = () => {
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6">
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase block ml-2 mb-2">To'liq ism</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase block ml-2 mb-2">To'liq ism (F.I.SH)</label>
                     <input required type="text" placeholder="Ismingiz..." value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-white/5 rounded-2xl font-bold outline-none dark:text-white" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase block ml-2 mb-2">Telefon</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase block ml-2 mb-2">Telefon raqamingiz</label>
                     <input required type="tel" placeholder="+998" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-white/5 rounded-2xl font-bold outline-none dark:text-white" />
                   </div>
                 </div>
                 <div onClick={() => fileInputRef.current?.click()} className={`border-4 border-dashed rounded-[40px] flex flex-col items-center justify-center cursor-pointer transition-all h-full min-h-[220px] ${previewImage ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-white/5'}`}>
-                  {previewImage ? <img src={previewImage} className="w-full h-full object-cover rounded-[36px]" /> : <div className="text-center p-6"><Camera className="mx-auto text-emerald-500 mb-3" size={40} /><p className="text-[10px] font-black uppercase text-slate-400">Rasm yuklang</p></div>}
+                  {previewImage ? <img src={previewImage} className="w-full h-full object-cover rounded-[36px]" /> : <div className="text-center p-6"><Camera className="mx-auto text-emerald-500 mb-3" size={40} /><p className="text-[10px] font-black uppercase text-slate-400">Rasm (Isbot) yuklang</p></div>}
                   <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
                 </div>
               </div>
-              <button disabled={isSubmitting || !previewImage} className="w-full py-6 bg-emerald-600 text-white rounded-[32px] font-black text-xl shadow-2xl flex items-center justify-center gap-4">
+              <button disabled={isSubmitting || !previewImage} className="w-full py-6 bg-emerald-600 text-white rounded-[32px] font-black text-xl shadow-2xl flex items-center justify-center gap-4 active:scale-95 transition-all">
                 {isSubmitting ? <Loader2 className="animate-spin" /> : <>Arizani Yuborish <Send size={24} /></>}
               </button>
             </form>

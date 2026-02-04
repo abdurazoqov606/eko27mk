@@ -8,6 +8,7 @@ import News from './pages/News';
 import Problems from './pages/Problems';
 import Quiz from './pages/Quiz';
 import EcoInfo from './pages/EcoInfo';
+import RedBook from './pages/RedBook';
 import NewsForum from './pages/NewsForum';
 import CommunityChat from './pages/CommunityChat';
 import Kids from './pages/Kids';
@@ -22,7 +23,21 @@ import { MessageCircle, Menu } from 'lucide-react';
 
 const SESSION_ID = Math.random().toString(36).substring(2, 15);
 
-// Aksent ranglar xaritasi
+const safeStringify = (obj: any) => {
+  try {
+    return JSON.stringify(obj);
+  } catch (e) {
+    const cache = new Set();
+    return JSON.stringify(obj, (key, value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (cache.has(value)) return;
+        cache.add(value);
+      }
+      return value;
+    });
+  }
+};
+
 const ACCENT_MAP: Record<string, string> = {
   emerald: '#10b981',
   blue: '#3b82f6',
@@ -38,17 +53,14 @@ const App: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   
-  // Sozlamalar holati
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('eko27_dark_mode') === 'true');
   const [accentColor, setAccentColor] = useState(() => localStorage.getItem('eko27_accent') || 'emerald');
 
-  // Ma'lumotlar
   const [news, setNews] = useState<EcoArticle[]>([]);
   const [library, setLibrary] = useState<EcoArticle[]>([]);
   const [games, setGames] = useState<GameItem[]>([]);
   const [onlineCount, setOnlineCount] = useState(30);
 
-  // 1. Bildirishnomalar uchun listener
   useEffect(() => {
     const marketQ = query(collection(db, "market_items"), orderBy("timestamp", "desc"), limit(1));
     let initialLoad = true;
@@ -72,7 +84,6 @@ const App: React.FC = () => {
     return () => unsubMarket();
   }, []);
 
-  // 2. Tungi rejim va Aksent rangni qo'llash
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -83,12 +94,11 @@ const App: React.FC = () => {
   }, [darkMode]);
 
   useEffect(() => {
-    const colorCode = ACCENT_MAP[accentColor];
+    const colorCode = ACCENT_MAP[accentColor] || '#10b981';
     document.documentElement.style.setProperty('--accent-primary', colorCode);
     localStorage.setItem('eko27_accent', accentColor);
   }, [accentColor]);
 
-  // 3. Foydalanuvchi va Online holat
   useEffect(() => {
     const presenceRef = doc(db, "presence", SESSION_ID);
     const updatePresence = async () => {
@@ -115,34 +125,36 @@ const App: React.FC = () => {
     return () => {
       clearInterval(interval);
       unsubPresence();
-      deleteDoc(presenceRef);
+      deleteDoc(presenceRef).catch(() => {});
     };
   }, []);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('eko27_user');
-    if (savedUser) setUser(JSON.parse(savedUser));
+    if (savedUser) {
+      try { setUser(JSON.parse(savedUser)); } catch (e) { localStorage.removeItem('eko27_user'); }
+    }
   }, []);
 
   const handleLoginSuccess = (userData: User) => {
     setUser(userData);
-    localStorage.setItem('eko27_user', JSON.stringify(userData));
+    localStorage.setItem('eko27_user', safeStringify(userData));
     setShowAuthModal(false);
   };
 
   const handleProfileUpdate = (updatedUser: User) => {
     setUser(updatedUser);
-    localStorage.setItem('eko27_user', JSON.stringify(updatedUser));
+    localStorage.setItem('eko27_user', safeStringify(updatedUser));
   };
 
   const renderSection = () => {
     switch (activeSection) {
       case AppSection.HOME: return <Home onNavigate={setActiveSection} />;
       case AppSection.MARKET: return <EcoMarket user={user} onLogin={() => setShowAuthModal(true)} />;
-      case AppSection.NEWS: return <News articles={news} />;
+      case AppSection.NEWS: return <News articles={news} user={user} />;
       case AppSection.PROBLEMS: return <Problems />;
       case AppSection.QUIZ: return <Quiz />;
-      case AppSection.NEWS_FORUM: return <NewsForum />;
+      case AppSection.NEWS_FORUM: return <NewsForum user={user} onLogin={() => setShowAuthModal(true)} />;
       case AppSection.PROFILE: return <Profile user={user} onLogout={() => { setUser(null); localStorage.removeItem('eko27_user'); }} onNavigate={setActiveSection} onUpdate={handleProfileUpdate} />;
       case AppSection.COMMUNITY_CHAT: 
         if (!user) return (
@@ -156,6 +168,7 @@ const App: React.FC = () => {
         return <CommunityChat user={user} />;
       case AppSection.ADMIN_PANEL: return <AdminPanel isAuthenticated={isAdminAuthenticated} onAuthenticate={() => setIsAdminAuthenticated(true)} />;
       case AppSection.ECO_INFO: return <EcoInfo articles={library} />;
+      case AppSection.RED_BOOK: return <RedBook />;
       case AppSection.GAMES: return <Kids games={games} />;
       case AppSection.SUPPORT: return <Support />;
       case AppSection.SETTINGS: return <Settings darkMode={darkMode} setDarkMode={setDarkMode} accentColor={accentColor} setAccentColor={setAccentColor} user={user} onUpdateProfile={handleProfileUpdate} onLogin={() => setShowAuthModal(true)} />;
@@ -165,9 +178,8 @@ const App: React.FC = () => {
 
   return (
     <div className={`flex h-screen overflow-hidden font-['Plus_Jakarta_Sans'] transition-colors ${darkMode ? 'bg-slate-950' : 'bg-slate-50'}`}>
-      {/* Dynamic Accent Style Injection */}
       <style>{`
-        :root { --accent-primary: ${ACCENT_MAP[accentColor]}; }
+        :root { --accent-primary: ${ACCENT_MAP[accentColor] || '#10b981'}; }
         .bg-emerald-600, .bg-emerald-500 { background-color: var(--accent-primary) !important; }
         .text-emerald-600, .text-emerald-500 { color: var(--accent-primary) !important; }
         .border-emerald-600, .border-emerald-500 { border-color: var(--accent-primary) !important; }

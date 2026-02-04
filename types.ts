@@ -7,6 +7,7 @@ export enum AppSection {
   NEWS_FORUM = 'news-forum',
   QUIZ = 'quiz',
   ECO_INFO = 'eco-info',
+  RED_BOOK = 'red-book',
   COMMUNITY_CHAT = 'community-chat',
   PROFILE = 'profile',
   GAMES = 'games',
@@ -14,6 +15,23 @@ export enum AppSection {
   ADMIN_PANEL = 'admin-panel',
   MARKET = 'market',
   SETTINGS = 'settings'
+}
+
+export interface RedBookConfig {
+  history: string;
+  updates: string;
+  plantsPdfUrl: string;
+  animalsPdfUrl: string;
+  lastUpdated: string;
+}
+
+export interface NatureReserve {
+  id: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  image: string;
+  timestamp: any;
 }
 
 export interface User {
@@ -52,6 +70,15 @@ export interface EcoArticle {
   category: string;
   image: string;
   link?: string;
+}
+
+export interface NewsComment {
+  id: string;
+  newsId: string;
+  userName: string;
+  userAvatar: string;
+  text: string;
+  timestamp: any;
 }
 
 export interface GameItem {
