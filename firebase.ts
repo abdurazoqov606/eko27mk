@@ -1,6 +1,6 @@
 
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDwekSD-vSZd5DX8EILw_EmuRMhDJiKVAM",
@@ -13,4 +13,9 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+
+// initializeFirestore ishlatiladi va experimentalForceLongPolling yoqiladi
+// Bu ba'zi tarmoqlarda (firewall yoki proksi) ulanishdagi 10 soniyalik kutish xatolarini tuzatadi
+export const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true,
+});
