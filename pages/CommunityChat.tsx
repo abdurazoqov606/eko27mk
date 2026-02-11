@@ -69,36 +69,36 @@ const CommunityChat: React.FC<CommunityChatProps> = ({ user }) => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)] max-w-6xl mx-auto bg-white dark:bg-slate-950 rounded-[48px] md:rounded-[64px] overflow-hidden shadow-4xl border border-slate-100 dark:border-white/5 relative">
+    <div className="flex flex-col h-[82vh] md:h-[calc(100vh-140px)] max-w-5xl mx-auto bg-white dark:bg-slate-950 rounded-[32px] md:rounded-[64px] overflow-hidden shadow-4xl border border-slate-100 dark:border-white/5 relative">
       {/* Chat Background Pattern */}
-      <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/leaf.png")' }} />
+      <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/leaf.png")' }} />
 
-      {/* Modern Header */}
-      <div className="relative z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl px-8 py-6 flex items-center justify-between border-b border-slate-100 dark:border-white/5 shadow-sm">
-        <div className="flex items-center gap-5">
+      {/* Responsive Header */}
+      <div className="relative z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl px-5 md:px-8 py-4 md:py-6 flex items-center justify-between border-b border-slate-100 dark:border-white/5 shadow-sm">
+        <div className="flex items-center gap-3 md:gap-5">
           <div className="relative">
-            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-xl rotate-3">
+            <div className="w-10 h-10 md:w-16 md:h-16 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl md:rounded-2xl flex items-center justify-center text-white font-black text-lg md:text-2xl shadow-xl rotate-3">
               EQ
             </div>
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-4 border-white dark:border-slate-900 rounded-full animate-pulse shadow-lg shadow-emerald-500/50" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 md:w-5 md:h-5 bg-emerald-500 border-2 md:border-4 border-white dark:border-slate-900 rounded-full animate-pulse shadow-lg" />
           </div>
           <div>
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter italic uppercase">Eko-Hamjamiyat</h3>
-            <p className="text-[10px] font-black uppercase text-emerald-500 tracking-widest flex items-center gap-2 mt-1">
-              <span className="w-2 h-2 bg-emerald-500 rounded-full" /> Jonli Muloqot
+            <h3 className="text-lg md:text-2xl font-black text-slate-900 dark:text-white tracking-tighter italic uppercase">Eko-Hamjamiyat</h3>
+            <p className="text-[8px] md:text-[10px] font-black uppercase text-emerald-500 tracking-widest flex items-center gap-1.5 mt-0.5">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" /> Jonli
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-           <div className="hidden sm:flex flex-col items-end">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Server holati</span>
+        <div className="hidden sm:flex items-center gap-4">
+           <div className="flex flex-col items-end">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Server</span>
               <span className="text-xs font-black text-emerald-600 italic">OPTIMAL v2.7</span>
            </div>
         </div>
       </div>
 
       {/* Messages Area */}
-      <div className="flex-grow overflow-y-auto p-6 md:p-12 space-y-8 no-scrollbar relative z-10 scroll-smooth">
+      <div className="flex-grow overflow-y-auto p-4 md:p-12 space-y-5 md:space-y-8 no-scrollbar relative z-10 scroll-smooth">
         {messages.map((msg, idx) => {
           const isMe = msg.senderId === user.id;
           const isAres = msg.senderName === 'ARES';
@@ -106,63 +106,54 @@ const CommunityChat: React.FC<CommunityChatProps> = ({ user }) => {
           const isSameSender = prevMsg?.senderId === msg.senderId;
 
           return (
-            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
-              <div className={`flex gap-4 max-w-[90%] md:max-w-[80%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-                {/* Avatar with improved design */}
+            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+              <div className={`flex gap-2 md:gap-4 max-w-[92%] md:max-w-[80%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+                {/* Avatar */}
                 {!isMe && !isSameSender && (
                   <div className="self-end mb-1">
-                    <img src={msg.senderAvatar} className={`w-14 h-14 rounded-2xl object-cover border-4 shadow-2xl transition-transform hover:scale-110 ${isAres ? 'border-emerald-500 shadow-emerald-500/30' : 'border-white dark:border-slate-800'}`} />
+                    <img src={msg.senderAvatar} className={`w-8 h-8 md:w-14 md:h-14 rounded-lg md:rounded-2xl object-cover border-2 md:border-4 shadow-xl ${isAres ? 'border-emerald-500' : 'border-white dark:border-slate-800'}`} />
                   </div>
                 )}
-                {!isMe && isSameSender && <div className="w-14" />}
+                {!isMe && isSameSender && <div className="w-8 md:w-14" />}
 
                 {/* Message Bubble */}
                 <div className={`relative flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                   {!isMe && !isSameSender && (
-                    <div className="flex items-center gap-2 mb-2 ml-2">
-                       <span className={`text-[10px] font-black uppercase tracking-widest ${isAres ? 'text-emerald-500' : 'text-slate-500'}`}>
+                    <div className="flex items-center gap-2 mb-1 md:mb-2 ml-1 md:ml-2">
+                       <span className={`text-[8px] md:text-[10px] font-black uppercase tracking-widest ${isAres ? 'text-emerald-500' : 'text-slate-500'}`}>
                          {msg.senderName}
                        </span>
                        {isAres && (
-                         <span className="bg-emerald-600 text-white text-[8px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-md">
-                           <ShieldCheck size={10} /> OWNER
+                         <span className="bg-emerald-600 text-white text-[7px] md:text-[8px] font-black px-1.5 md:py-0.5 rounded-full flex items-center gap-1">
+                           <ShieldCheck size={8} /> ADMIN
                          </span>
                        )}
                     </div>
                   )}
 
-                  <div className={`group relative p-1 rounded-[32px] transition-all shadow-xl hover:shadow-2xl ${
+                  <div className={`group relative p-0.5 rounded-[20px] md:rounded-[32px] transition-all shadow-md md:shadow-xl ${
                     isAres ? 'ares-message rounded-bl-none text-white' : 
                     isMe ? 'bg-gradient-to-br from-emerald-600 to-emerald-800 text-white rounded-br-none' : 
                     'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-bl-none border border-slate-100 dark:border-white/5'
                   }`}>
                     {msg.type === 'image' && (
-                      <div className="rounded-[28px] overflow-hidden m-1.5 shadow-inner">
-                        <img src={msg.mediaUrl} className="max-w-full max-h-[500px] object-cover hover:scale-105 transition-transform duration-700 cursor-zoom-in" alt="Media" />
+                      <div className="rounded-[18px] md:rounded-[28px] overflow-hidden m-1 shadow-inner">
+                        <img src={msg.mediaUrl} className="max-w-full max-h-[300px] md:max-h-[500px] object-cover cursor-zoom-in" alt="Media" />
                       </div>
                     )}
                     
-                    <div className="px-6 py-4 pb-8 relative">
-                      {isAres && <Sparkles size={16} className="absolute top-3 right-4 text-amber-400 animate-pulse" />}
-                      <p className={`text-base md:text-lg font-medium leading-relaxed ${isAres ? 'italic font-bold' : ''}`}>
+                    <div className="px-4 md:px-6 py-2.5 md:py-4 pb-6 md:pb-8 relative">
+                      {isAres && <Sparkles size={12} className="absolute top-2 right-3 text-amber-400" />}
+                      <p className={`text-sm md:text-lg font-medium leading-relaxed ${isAres ? 'italic font-bold' : ''}`}>
                         {msg.text}
                       </p>
                       
                       {/* Time and Status */}
-                      <div className={`absolute bottom-3 right-6 flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest ${isMe || isAres ? 'text-white/60' : 'text-slate-400'}`}>
+                      <div className={`absolute bottom-1.5 md:bottom-3 right-4 md:right-6 flex items-center gap-1 text-[7px] md:text-[9px] font-black uppercase tracking-widest ${isMe || isAres ? 'text-white/60' : 'text-slate-400'}`}>
                         {msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '...'}
-                        {isMe && <CheckCheck size={12} className="text-emerald-300" />}
+                        {isMe && <CheckCheck size={10} className="text-emerald-300" />}
                       </div>
                     </div>
-
-                    {/* Chat Bubble Tails */}
-                    {!isSameSender && (
-                      <div className={`absolute bottom-0 w-6 h-6 ${
-                        isMe ? '-right-2 text-emerald-800' : '-left-2 text-white dark:text-slate-900'
-                      } ${isAres ? 'text-[#022c22]' : ''}`}>
-                         {/* SVG Tail design can be added here for even more polish */}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -172,37 +163,34 @@ const CommunityChat: React.FC<CommunityChatProps> = ({ user }) => {
         <div ref={chatEndRef} />
       </div>
 
-      {/* Modern Input Bar */}
-      <div className="relative z-30 p-6 md:p-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border-t border-slate-100 dark:border-white/5">
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
+      {/* Compact Responsive Input Bar */}
+      <div className="relative z-30 p-3 md:p-10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border-t border-slate-100 dark:border-white/5">
+        <div className="max-w-4xl mx-auto flex items-center gap-2 md:gap-4">
           <button 
             onClick={() => fileInputRef.current?.click()} 
-            className="group p-5 bg-slate-100 dark:bg-white/5 text-slate-400 rounded-3xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-600 transition-all active:scale-90 shadow-sm"
+            className="p-3 md:p-5 bg-slate-100 dark:bg-white/5 text-slate-400 rounded-2xl md:rounded-3xl hover:text-emerald-600 transition-all active:scale-90"
           >
-            <Camera size={26} className="group-hover:rotate-12 transition-transform" />
+            <Camera size={20} md:size={26} />
           </button>
           <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
           
-          <div className="flex-grow relative group">
+          <div className="flex-grow relative">
             <input 
               type="text" 
               value={inputText} 
               onChange={e => setInputText(e.target.value)} 
               onKeyDown={e => e.key === 'Enter' && handleSendText()}
-              placeholder="Ekologik fikr yuboring..." 
-              className="w-full px-10 py-6 bg-slate-100 dark:bg-white/5 dark:text-white rounded-[32px] font-black text-lg outline-none border-4 border-transparent focus:border-emerald-500/20 transition-all shadow-inner placeholder:text-slate-400 italic"
+              placeholder="Fikr yuboring..." 
+              className="w-full px-5 md:px-10 py-3 md:py-6 bg-slate-100 dark:bg-white/5 dark:text-white rounded-[20px] md:rounded-[32px] font-bold md:font-black text-sm md:text-lg outline-none border-2 border-transparent focus:border-emerald-500/20 transition-all"
             />
-            <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2 opacity-0 group-focus-within:opacity-100 transition-opacity">
-               <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Enter - Yuborish</span>
-            </div>
           </div>
 
           <button 
             onClick={handleSendText} 
             disabled={loading || !inputText.trim()} 
-            className="p-6 bg-emerald-600 text-white rounded-[32px] shadow-3xl hover:bg-emerald-700 disabled:opacity-50 transition-all active:scale-95 group"
+            className="p-3 md:p-6 bg-emerald-600 text-white rounded-[20px] md:rounded-[32px] shadow-xl hover:bg-emerald-700 disabled:opacity-50 transition-all active:scale-95"
           >
-            {loading ? <Loader2 className="animate-spin" /> : <Send size={26} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />}
+            {loading ? <Loader2 className="animate-spin" size={20} md:size={26} /> : <Send size={20} md:size={26} />}
           </button>
         </div>
       </div>

@@ -6,7 +6,7 @@ import { User, MarketItem } from '../types';
 import { 
   ShoppingBag, Sparkles, Package, 
   ArrowRight, Plus, X, Camera, Phone, 
-  Search, Loader2, Tag, Smartphone
+  Search, Loader2, Tag, Smartphone, ExternalLink
 } from 'lucide-react';
 
 interface MarketProps {
@@ -41,8 +41,8 @@ const EcoMarket: React.FC<MarketProps> = ({ user, onLogin }) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 1024 * 1024) { // 1MB limit for free firestore (using base64 string storage)
-        alert("Rasm hajmi juda katta! 1MB dan kichik rasm yuklang.");
+      if (file.size > 800 * 1024) { // 800KB limit
+        alert("Rasm hajmi juda katta! 800KB dan kichik rasm yuklang. Pastdagi havoladan foydalanib rasmni kichraytirishingiz mumkin.");
         return;
       }
       const reader = new FileReader();
@@ -190,28 +190,40 @@ const EcoMarket: React.FC<MarketProps> = ({ user, onLogin }) => {
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid md:grid-cols-2 gap-10">
                 {/* Photo Upload Area */}
-                <div 
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`border-4 border-dashed rounded-[48px] flex flex-col items-center justify-center cursor-pointer transition-all h-[360px] relative overflow-hidden group ${
-                    previewImage ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-slate-50 hover:bg-slate-100'
-                  }`}
-                >
-                  {previewImage ? (
-                    <>
-                      <img src={previewImage} className="w-full h-full object-cover rounded-[40px]" alt="Preview" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                         <Camera size={48} className="text-white" />
+                <div className="flex flex-col gap-4">
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-4 border-dashed rounded-[48px] flex flex-col items-center justify-center cursor-pointer transition-all h-[360px] relative overflow-hidden group ${
+                      previewImage ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-slate-50 hover:bg-slate-100'
+                    }`}
+                  >
+                    {previewImage ? (
+                      <>
+                        <img src={previewImage} className="w-full h-full object-cover rounded-[40px]" alt="Preview" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                           <Camera size={48} className="text-white" />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center p-8">
+                        <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                          <Camera size={40} />
+                        </div>
+                        <p className="text-xs font-black uppercase text-slate-400 tracking-widest leading-relaxed">Rasm yuklash<br/>(800KB gacha)</p>
                       </div>
-                    </>
-                  ) : (
-                    <div className="text-center p-8">
-                      <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                        <Camera size={40} />
-                      </div>
-                      <p className="text-xs font-black uppercase text-slate-400 tracking-widest leading-relaxed">Rasm yuklash<br/>(1MB gacha)</p>
-                    </div>
-                  )}
-                  <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                    )}
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                  </div>
+                  
+                  {/* Image Compressor Helper */}
+                  <a 
+                    href="https://mgkbares.vercel.app/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 py-3 px-4 bg-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-blue-100 hover:bg-blue-100 transition-all"
+                  >
+                    <ExternalLink size={14} /> Rasm hajmi kattami? Bu yerda kichraytiring
+                  </a>
                 </div>
 
                 {/* Form Details */}

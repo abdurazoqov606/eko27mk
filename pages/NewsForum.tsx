@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
 import { collection, onSnapshot, query, orderBy, updateDoc, doc, serverTimestamp, increment, addDoc } from 'firebase/firestore';
 import { ContestSubmission, ContestConfig, User } from '../types';
 import { 
   Trophy, Rocket, Award, Camera, X, Heart, 
-  Search, Phone, Send, Loader2, Sparkles, Medal 
+  Search, Phone, Send, Loader2, Sparkles, Medal, ExternalLink 
 } from 'lucide-react';
 
 interface NewsForumProps {
@@ -76,7 +77,7 @@ const NewsForum: React.FC<NewsForumProps> = ({ user, onLogin }) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 800 * 1024) { 
-        alert("Rasm hajmi juda katta! 800KB dan kichik rasm yuklang."); 
+        alert("Rasm hajmi juda katta! 800KB dan kichik rasm yuklang. Pastdagi havoladan foydalanib rasmni kichraytirishingiz mumkin."); 
         return; 
       }
       const reader = new FileReader();
@@ -213,9 +214,21 @@ const NewsForum: React.FC<NewsForumProps> = ({ user, onLogin }) => {
                     <input required type="tel" placeholder="+998" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-white/5 rounded-2xl font-bold outline-none dark:text-white" />
                   </div>
                 </div>
-                <div onClick={() => fileInputRef.current?.click()} className={`border-4 border-dashed rounded-[40px] flex flex-col items-center justify-center cursor-pointer transition-all h-full min-h-[220px] ${previewImage ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-white/5'}`}>
-                  {previewImage ? <img src={previewImage} className="w-full h-full object-cover rounded-[36px]" alt="" /> : <div className="text-center p-6"><Camera className="mx-auto text-emerald-500 mb-3" size={40} /><p className="text-[10px] font-black uppercase text-slate-400">Rasm yuklang</p></div>}
-                  <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                <div className="flex flex-col gap-3">
+                  <div onClick={() => fileInputRef.current?.click()} className={`border-4 border-dashed rounded-[40px] flex flex-col items-center justify-center cursor-pointer transition-all h-full min-h-[220px] relative overflow-hidden ${previewImage ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-white/5'}`}>
+                    {previewImage ? <img src={previewImage} className="w-full h-full object-cover rounded-[36px]" alt="" /> : <div className="text-center p-6"><Camera className="mx-auto text-emerald-500 mb-3" size={40} /><p className="text-[10px] font-black uppercase text-slate-400">Rasm yuklang (800KB gacha)</p></div>}
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                  </div>
+                  
+                  {/* Image Compressor Helper */}
+                  <a 
+                    href="https://mgkbares.vercel.app/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 py-3 px-4 bg-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-blue-100 hover:bg-blue-100 transition-all"
+                  >
+                    <ExternalLink size={14} /> Rasm hajmi kattami? Bu yerda kichraytiring
+                  </a>
                 </div>
               </div>
               <button disabled={isSubmitting || !previewImage} className="w-full py-6 bg-emerald-600 text-white rounded-[32px] font-black text-xl shadow-2xl flex items-center justify-center gap-4 active:scale-95 transition-all">

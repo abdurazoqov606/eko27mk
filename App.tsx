@@ -61,7 +61,7 @@ const App: React.FC = () => {
   const [news, setNews] = useState<EcoArticle[]>([]);
   const [library, setLibrary] = useState<EcoArticle[]>([]);
   const [games, setGames] = useState<GameItem[]>([]);
-  const [onlineCount, setOnlineCount] = useState(30);
+  const [onlineCount, setOnlineCount] = useState(1);
 
   // Admin profilini boshqarish (ARES)
   useEffect(() => {
@@ -122,11 +122,29 @@ const App: React.FC = () => {
     localStorage.setItem('eko27_accent', accentColor);
   }, [accentColor]);
 
+  // Real-time Presence System
   useEffect(() => {
     const presenceRef = doc(db, "presence", SESSION_ID);
+    
     const updatePresence = async () => {
-      try { await setDoc(presenceRef, { lastSeen: serverTimestamp(), active: true }); } catch (e) {}
+      try { 
+        await setDoc(presenceRef, { 
+          lastSeen: serverTimestamp(), 
+          active: true 
+        }, { merge: true }); 
+      } catch (e) {}
     };
+
+    // Tab yopilganda o'chirish
+    const handleUnload = () => {
+      const data = JSON.stringify({ active: false });
+      // Navigator.sendBeacon ishlatib bo'lmaydi chunki u Firestore document delete qilolmaydi, 
+      // lekin bizda Firestore session o'zi o'chadi yoki cleanup trigger bo'ladi.
+      deleteDoc(presenceRef).catch(() => {});
+    };
+
+    window.addEventListener('beforeunload', handleUnload);
+
     const interval = setInterval(updatePresence, 20000);
     updatePresence();
 
@@ -136,9 +154,11 @@ const App: React.FC = () => {
         const data = doc.data();
         if (!data.lastSeen) return false;
         const lastSeenTime = data.lastSeen.toMillis ? data.lastSeen.toMillis() : now;
-        return (now - lastSeenTime) < 40000;
+        // 60 soniyadan ko'p vaqt o'tgan bo'lsa online hisoblanmaydi
+        return (now - lastSeenTime) < 60000;
       });
-      setOnlineCount(activeUsers.length + 30);
+      // Minimal 1 kishi online (o'zi)
+      setOnlineCount(Math.max(1, activeUsers.length));
     });
 
     onSnapshot(query(collection(db, "news"), orderBy("timestamp", "desc")), (s) => setNews(s.docs.map(d => ({ id: d.id, ...d.data() } as EcoArticle))));
@@ -148,6 +168,7 @@ const App: React.FC = () => {
     return () => {
       clearInterval(interval);
       unsubPresence();
+      window.removeEventListener('beforeunload', handleUnload);
       deleteDoc(presenceRef).catch(() => {});
     };
   }, []);
