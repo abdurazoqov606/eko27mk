@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, User as UserIcon, Loader2, ArrowRight, Sparkles, ShieldAlert } from 'lucide-react';
 import { User } from '../types';
+import { db } from '../firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -14,7 +16,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
   const [formData, setFormData] = useState({ name: '', avatarSeed: 'Abbos' });
 
   useEffect(() => {
-    // Qurilma nazorati
     const existing = localStorage.getItem('eko27_user');
     if (existing) setHasExistingProfile(true);
   }, []);
@@ -30,14 +31,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
     { seed: 'Maya', label: 'Eko' }
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || hasExistingProfile) return;
     setLoading(true);
 
-    setTimeout(() => {
+    try {
+      const userId = 'user_' + Math.random().toString(36).substr(2, 9);
       const mockUser: User = {
-        id: 'user_' + Math.random().toString(36).substr(2, 9),
+        id: userId,
         name: formData.name,
         email: `${formData.name.toLowerCase()}@eko27.uz`,
         avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${formData.avatarSeed}&backgroundColor=b6e3f4,c0aede,d1d4f9`,
@@ -50,9 +52,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
         achievements: [],
         joinedDate: new Date().toISOString().split('T')[0]
       };
+
+      // Global foydalanuvchilar ro'yxatiga qo'shish (hamma ko'rishi uchun)
+      await setDoc(doc(db, "users", userId), {
+        ...mockUser,
+        timestamp: serverTimestamp()
+      });
+
       onLoginSuccess(mockUser);
-      setLoading(false);
-    }, 1500);
+    } catch (err) {
+      console.error("Registration error:", err);
+      alert("Xatolik yuz berdi. Iltimos qayta urinib ko'ring.");
+    }
+    setLoading(false);
   };
 
   if (hasExistingProfile) {

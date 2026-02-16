@@ -62,6 +62,7 @@ const App: React.FC = () => {
   const [library, setLibrary] = useState<EcoArticle[]>([]);
   const [games, setGames] = useState<GameItem[]>([]);
   const [onlineCount, setOnlineCount] = useState(1);
+  const [registeredCount, setRegisteredCount] = useState(0);
 
   // Admin profilini boshqarish (ARES)
   useEffect(() => {
@@ -122,7 +123,7 @@ const App: React.FC = () => {
     localStorage.setItem('eko27_accent', accentColor);
   }, [accentColor]);
 
-  // Real-time Presence System
+  // Real-time Presence and Registered Users System
   useEffect(() => {
     const presenceRef = doc(db, "presence", SESSION_ID);
     
@@ -135,30 +136,29 @@ const App: React.FC = () => {
       } catch (e) {}
     };
 
-    // Tab yopilganda o'chirish
     const handleUnload = () => {
-      const data = JSON.stringify({ active: false });
-      // Navigator.sendBeacon ishlatib bo'lmaydi chunki u Firestore document delete qilolmaydi, 
-      // lekin bizda Firestore session o'zi o'chadi yoki cleanup trigger bo'ladi.
       deleteDoc(presenceRef).catch(() => {});
     };
 
     window.addEventListener('beforeunload', handleUnload);
-
     const interval = setInterval(updatePresence, 20000);
     updatePresence();
 
+    // Online Count Listener
     const unsubPresence = onSnapshot(collection(db, "presence"), (snapshot) => {
       const now = Date.now();
       const activeUsers = snapshot.docs.filter(doc => {
         const data = doc.data();
         if (!data.lastSeen) return false;
         const lastSeenTime = data.lastSeen.toMillis ? data.lastSeen.toMillis() : now;
-        // 60 soniyadan ko'p vaqt o'tgan bo'lsa online hisoblanmaydi
         return (now - lastSeenTime) < 60000;
       });
-      // Minimal 1 kishi online (o'zi)
       setOnlineCount(Math.max(1, activeUsers.length));
+    });
+
+    // Registered Users Count Listener
+    const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+      setRegisteredCount(snapshot.size);
     });
 
     onSnapshot(query(collection(db, "news"), orderBy("timestamp", "desc")), (s) => setNews(s.docs.map(d => ({ id: d.id, ...d.data() } as EcoArticle))));
@@ -168,6 +168,7 @@ const App: React.FC = () => {
     return () => {
       clearInterval(interval);
       unsubPresence();
+      unsubUsers();
       window.removeEventListener('beforeunload', handleUnload);
       deleteDoc(presenceRef).catch(() => {});
     };
@@ -231,7 +232,6 @@ const App: React.FC = () => {
         .border-emerald-600, .border-emerald-500 { border-color: var(--accent-primary) !important; }
         .shadow-emerald-600\/20 { --tw-shadow-color: var(--accent-primary); }
         
-        /* ARES Premium Message Glow */
         @keyframes aresGlow {
           0% { box-shadow: 0 0 5px #10b981, 0 0 10px #10b981; }
           50% { box-shadow: 0 0 20px #10b981, 0 0 30px #f59e0b; }
@@ -261,6 +261,7 @@ const App: React.FC = () => {
                 user={user} 
                 onLogin={() => setShowAuthModal(true)}
                 onlineCount={onlineCount}
+                registeredCount={registeredCount}
                 onClose={() => setIsSidebarOpen(false)}
              />
           </div>

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { AppSection, User } from '../types';
-import { Home, Trophy, MessageSquare, BookOpen, AlertCircle, Gamepad2, Newspaper, HelpCircle, ShieldAlert, X, Globe, ShoppingBag, Settings, Book, MapPin, Video } from 'lucide-react';
+import { Home, Trophy, MessageSquare, BookOpen, AlertCircle, Gamepad2, Newspaper, HelpCircle, ShieldAlert, X, Globe, ShoppingBag, Settings, Book, MapPin, Video, Users } from 'lucide-react';
 
 interface SidebarProps {
   activeSection: AppSection;
@@ -9,12 +9,13 @@ interface SidebarProps {
   user: User | null;
   onLogin: () => void;
   onlineCount: number;
+  registeredCount: number;
   onClose: () => void;
 }
 
 const LOGO_URL = "https://raw.githubusercontent.com/abdurazoqov606/Hyt/main/IMG_20260201_092843.png";
 
-const Sidebar: React.FC<SidebarProps> = ({ activeSection, onNavigate, user, onLogin, onlineCount, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeSection, onNavigate, user, onLogin, onlineCount, registeredCount, onClose }) => {
   const menuItems = [
     { id: AppSection.HOME, label: 'Asosiy sahifa', icon: <Home size={18} /> },
     { id: AppSection.MARKET, label: 'Eko-Bozor', icon: <ShoppingBag size={18} /> },
@@ -41,15 +42,28 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, onNavigate, user, onLo
 
       <button onClick={onClose} className="absolute top-6 right-6 p-2 bg-white/10 rounded-xl lg:hidden z-20"><X size={18} /></button>
       
-      <div className="p-6 md:p-8 flex items-center gap-4 relative z-10">
-        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg rotate-3 border-2 border-emerald-600 overflow-hidden shrink-0">
-          <img src={LOGO_URL} className="w-full h-full object-cover" alt="Logo" />
+      <div className="p-6 md:p-8 flex flex-col gap-4 relative z-10">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg rotate-3 border-2 border-emerald-600 overflow-hidden shrink-0">
+            <img src={LOGO_URL} className="w-full h-full object-cover" alt="Logo" />
+          </div>
+          <div>
+            <h1 className="text-xl font-black tracking-tighter uppercase italic leading-none">EKO <span className="text-emerald-500">27</span></h1>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-black tracking-tighter uppercase italic leading-none">EKO <span className="text-emerald-500">27</span></h1>
-          <div className="flex items-center gap-1.5 mt-1 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 w-fit">
+
+        {/* Real-time Stats Container */}
+        <div className="flex flex-wrap gap-2">
+          {/* Online Indicator */}
+          <div className="flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
             <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,1)]" />
-            <span className="text-[8px] font-black uppercase text-emerald-500 tracking-widest">{onlineCount} FAOL</span>
+            <span className="text-[8px] font-black uppercase text-emerald-500 tracking-widest">{onlineCount} ONLINE</span>
+          </div>
+          
+          {/* Registered Users Indicator */}
+          <div className="flex items-center gap-1.5 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20">
+            <Users size={10} className="text-blue-500" />
+            <span className="text-[8px] font-black uppercase text-blue-500 tracking-widest">{registeredCount} A'ZOLAR</span>
           </div>
         </div>
       </div>
