@@ -2,6 +2,7 @@
   "name": "Eco27",
   "description": "Tayloq tumani 27-maktab o'quvchilari tomonidan yaratilgan innovatsion ekologik platforma.",
   "requestFramePermissions": [
-    "geolocation"
+    "geolocation",
+    "camera"
   ]
 }

